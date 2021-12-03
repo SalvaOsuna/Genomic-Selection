@@ -1,0 +1,4 @@
+    ##LOAD DATA##
+
+R18 <-  data.frame(read.xlsx("R18_19_20.xlsx", sheet = "R18", rowNames = T))
+
