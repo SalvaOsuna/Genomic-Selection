@@ -1,0 +1,192 @@
+---
+title: "CREA stay"
+author: "Salvador Osuna-Caballero"
+date: "6/12/2021"
+output:
+  html_document:
+    toc: true
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+### Introduction
+
+For three months, the PhD candidate Salvador Osuna-Caballero will be in CREA Lodi to learn bioinformatics tools to apply in his own data set. The main goal is to apply **Genomic Selection** models over those data to obtain results with high precision and accuracy.
+
+### Material
+
+A pea collection of 320 genotypes that include:
+
+| Material      | n accessions (%) |
+|---------------|------------------|
+| Landrace      | 175 (54.7 %)     |
+| Cultivar      | 47 (14.7 %)      |
+| Wild          | 45 (14.1%)       |
+| Unknown       | 44 (13.8 %)      |
+| Breeding Line | 9 (2.8 %)        |
+
+Of the following *Pissum* spp. taxa diversity:
+
+| Taxa                                          | n accessions (%) |
+|:----------------------------------------------|------------------|
+| *Pisum sativum* ssp. *sativum*                | 231 (72.8 %)     |
+| *Pisum sativum* ssp. *arvense*                | 27 (8.8 %)       |
+| *Pisum sativum* ssp. *elatius*                | 22 (7.2 %)       |
+| *Pisum fulvum*                                | 17 (5.0 %)       |
+| *Pisum abyssinicum*                           | 12 (3.8 %)       |
+| *Pisum sativum* ssp. *elatius* var. *pumilio* | 4 (1.3 %)        |
+| *Pisum sativum* ssp. *transcaucasicum*        | 2 (0.6 %)        |
+| *Pisum sativum* ssp. *choresmicum*            | 1 (0.3 %)        |
+| *Pisum sativum* ssp. *cinereum*               | 1 (0.3 %)        |
+
+Constituting of following worldwide panel:
+
+![](WolrdWide_pea_panel.PNG "Worldwide Pisum spp. panel"){width="630"}
+
+### Experimental designs
+
+#### Field
+
+The pea collection was phenotyped over three crop seasons (2017/18, 2018/19 and 2019/20) at Cordoba, Spain using the pea cv. Cartouche as control check for all the traits measured. Each field assays consist of a randomized complete block design (RCBD) based on alpha lattice model was performed with three replicates. The experimental unit consisted of a single 1 m long row per accession with 10 seeds per row, separated from the adjacent row by 0,7 m.
+
+![*Simplified scheme of the experimental design in the field.*](Experimental_design_field.png){width="1000"}
+
+##### Traits evaluated
+
+-   [Germinated plants.]{.ul} For the ten seeds sown, how many of them germinated properly in the soil. (3 seasons)
+
+-   [DtFF.]{.ul} Days to First Flower. Days from the sowing to the first flower appeared in the experimental unit. (2 seasons)
+
+-   [GDDtFP.]{.ul} Growing Degree Days to First Flower. Accumulate temperature from the sowing to the first flower appeared in the experimental unit. (2 seasons)
+
+-   [DtF.]{.ul} Days to Flowering. Days from the sowing to the 50 % flowering plants. (3 seasons)
+
+-   [GDDtF.]{.ul} Growing Degree Days to Flowering. Accumulate temperature from the sowing to the 50% flowering plants. (3 seasons)
+
+-   [DtFP.]{.ul} Days to First Pod. Days from the sowing to the first pod appeared in the experimental unit. (3 seasons)
+
+-   [GDDtFP.]{.ul} Growing Degree Days to First Pod. Accumulate temperature from the sowing to the first pod appeared in the experimental unit. (3 seasons)
+
+-   [DtP.]{.ul} Days to Podding. Days from the sowing to the 50 % podding plants. (3 seasons)
+
+-   [GDDtP.]{.ul} Growing Degree Days to Podding. Accumulate temperature from the sowing to the 50% podding plants. (3 seasons)
+
+-   [DtM.]{.ul} Days to Madurity. Days from the sowing to the 100 % pods are grain full. (2 seasons)
+
+-   [GDDtM.]{.ul} Growing Degree Days to Podding. Accumulate temperature from the sowing to the100 % pods are grain full. (2 seasons)
+
+-   [Biomass.]{.ul} Dry Biomass of the experimental unit in kg. Dry Biomass per plant is also included in an additional column in grams. (3 seasons)
+
+-   [Yield.]{.ul} Total yield in kg of dry seeds. Yield per plant is also included in an additional column in grams. (3 seasons)
+
+-   [ASCO.]{.ul} Ascochyta blights incidence over the experimental unit, calculated in percentage of canopy damage over the total plants. (2 seasons)
+
+-   [POWDERY MILDEW.]{.ul} *Erysiphe pisi* incidence over the experimental unit, calculated in percentage of coverage by the fungus mycelium over the total plants. (2 seasons)
+
+-   [RUST.]{.ul} *Uromyces pisi*, artificially inoculated to ensure the homogeneity of the disease, severity in the experimental unit. Calculated in coverage percentage by pustules over the plants. (3 seasons)
+
+#### Growth Chamber (Controlled Conditions)
+
+In this case the experimental unit consisted in a single plant evaluated per accession. In every rust inoculation, two replicates per accession were evaluated and two separated inoculations were carried out using the rust susceptible Messire cv. as control check.
+
+##### Traits evaluated
+
+-   IF. Infection frequency as number of pustules per cm^2^ of leaf, counted every day from day 7 after inoculation to day 14, when the life cycle of rust ended.
+
+-   AUDPC. The IF measured every day allow to calculate the area under the disease progress curve.
+
+-   LP~50~. The IF measured every day allow to calculate the latency period. It is the period time from the inoculation to the 50 % of total pustules appeared.
+
+-   DS (%). The disease severity is a subjective estimation of the damage caused by rust. It is the percentage of pustules over the total plant.
+
+-   IT. The infection type according to [@stackman1962identification]
+
+## Tasks
+
+### Task 1. Create a main folder
+
+It is important to have the project well organized. So, the first step is create a folder with the following sub-folder:
+
+-   Data
+
+-   Scripts (.R files)
+
+-   report (.Rmd, .html)
+
+-   Results
+
+-   Complementary folders (i.e. bibliography)
+
+This main folder containing all the project information needs a backup. I am currently using MEGA cloud but try to use GitHub is desirable.
+
+### Task 2. Solve the 𝛂 lattice (Get rid of repetitions)
+
+To solve the alpha lattice design the accessions are previously normalized with his control. (Create a function to automatize that process, with Excel is quietly long).
+
+```{r, include= F}
+library(metan)
+library(openxlsx)
+library(tidyverse)
+R18 <- read.xlsx("C:/Users/Salva/Desktop/DOCTORADO NUBE/ENSAYOS/GS/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData")
+```
+
+```{r}
+## Metan package allow to calculate BLUPs and others stability indexes and parameters. It Also offer statistic help.
+
+gen_alpha <- 
+  gamem(R18, #data
+        GEN, #genotype
+        REP, #replicate
+        Germ, #trait
+        block = BLOCK) #block
+```
+
+```{r}
+plot(gen_alpha, type = "re")
+
+```
+
+```{r}
+##BLUP histogram of Best Unlinear Unbiased Prediction of Germ trait in 2018 season:
+
+hist(gen_alpha$Germ$BLUPgen$Predicted)
+
+```
+
+### Task 3. Create useful functions to recycle the console
+
+```{r}
+
+##Create a function that give you the average of a trait (selected as a vector) and select the controls inside de df if you select it.
+
+fn.media.dataframe <- function(df, argmivector, controls) {
+  
+  print("The mean of the vector selected in the DataFrame is")
+  print(paste("Mean: ",round(mean(argmivector, ),2)))
+  
+  if (controls == T) {
+    print(Control <- filter(df, GEN == "Control"))
+  } else {
+    print("No controls list shown")
+  }
+}
+```
+
+```{r}
+fn.media.dataframe(R18, R18$Germ, controls = T)
+
+```
+
+```{r}
+fn.media.dataframe(R18, R18$Germ, controls = F)
+
+```
+
+### Task 4. Start a report
+
+Well... here we are...\
