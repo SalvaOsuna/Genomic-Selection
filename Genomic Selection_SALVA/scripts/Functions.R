@@ -34,8 +34,8 @@ fn.media.dataframe(R18, R18$Germ, controls = T)
 R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
                     c("text", #ENV
                       "text", #REP
-                      "text", #BLOCK
-                      "text", #ROW
+                      "numeric", #BLOCK
+                      "numeric", #ROW
                       "text", #GEN
                       "numeric", #GERM
                       "numeric", #BIOM
@@ -79,6 +79,13 @@ GERM_R <- R18 %>%
   filter(GEN == "Control") %>%
   summarise(T_Germ = mean(T_Germ))
 
+GERM_R1 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "1") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+
 head(GERM_R)
 
 GERM_R %>% 
@@ -106,6 +113,14 @@ GERM_B <- R18 %>%
   group_by(REP, BLOCK) %>%
   filter(GEN == "Control") %>%
   summarise(T_Germ = mean(T_Germ))
+
+GERM_B1 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "1") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
 
 head(GERM_B)
 
