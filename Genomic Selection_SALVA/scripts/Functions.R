@@ -56,22 +56,22 @@ R18 %>%
   filter(GEN == "Control") %>%
   ggbetweenstats(
     x     = REP,
-    y     = T_Germ,
+    y     = T_Rust,
     title = "Distribution of Germination across Replicates in the Controls"
   )
 
     ##Intentar hacer una función que haga solo esto:
-    F1 <- function(df) {
-      p <- df %>%
-        filter(GEN == "Control") %>%
-        ggbetweenstats(
+    F1 <- function(df, trait) {
+      
+      p <- df %>% filter(GEN == "Control") %>% ggbetweenstats(
           x     = REP,
-          y     = T_Germ,
+          y     = {{trait}},
           title = "Distribution of Germination across Replicates in the Controls"
         )
       return(p)
     }
-    F1(R18)
+    F1(R18, "T_Germ")
+    F1(R18, "Asco")
 
 #Tabla con las medias de los controles por ROW y REP
 GERM_R <- R18 %>%
