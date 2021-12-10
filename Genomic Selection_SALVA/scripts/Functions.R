@@ -1,4 +1,3 @@
-install.packages("ggstatsplot")
 library(openxlsx)
 library(data.table)
 library(tidyverse)

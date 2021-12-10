@@ -220,11 +220,7 @@ pre code {
 <div id="material" class="section level3">
 <h3>Material</h3>
 <p>A pea collection of 320 genotypes that include:</p>
-<table style="width:49%;">
-<colgroup>
-<col width="22%" />
-<col width="26%" />
-</colgroup>
+<table>
 <thead>
 <tr class="header">
 <th>Material</th>
@@ -255,11 +251,7 @@ pre code {
 </tbody>
 </table>
 <p>Of the following <em>Pissum</em> spp. taxa diversity:</p>
-<table style="width:93%;">
-<colgroup>
-<col width="66%" />
-<col width="26%" />
-</colgroup>
+<table>
 <thead>
 <tr class="header">
 <th align="left">Taxa</th>
@@ -375,14 +367,14 @@ pre code {
 <pre class="r"><code>#Load data frame:
 head(R18)</code></pre>
 <pre><code>## # A tibble: 6 x 17
-##   ENV   REP   BLOCK ROW   GEN     T_Germ T_Biomass_kg T_Biomass_pl_gr T_Yield_kg
-##   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt;        &lt;dbl&gt;           &lt;dbl&gt;      &lt;dbl&gt;
-## 1 R18   1     1     1     Control      9        0.308            34.2      0.151
-## 2 R18   1     2     1     224         10        0.187            18.7      0.079
-## 3 R18   1     3     1     194         10        0.164            16.4      0.077
-## 4 R18   1     4     1     323          5        0.043             8.6      0.005
-## 5 R18   1     5     1     69          10        0.29             29        0.13 
-## 6 R18   1     6     1     21          10        0.172            17.2      0.07 
+##   ENV     REP BLOCK ROW   GEN     T_Germ T_Biomass_kg T_Biomass_pl_gr T_Yield_kg
+##   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt;        &lt;dbl&gt;           &lt;dbl&gt;      &lt;dbl&gt;
+## 1 R18       1     1 1     Control      9        0.308            34.2      0.151
+## 2 R18       1     2 1     224         10        0.187            18.7      0.079
+## 3 R18       1     3 1     194         10        0.164            16.4      0.077
+## 4 R18       1     4 1     323          5        0.043             8.6      0.005
+## 5 R18       1     5 1     69          10        0.29             29        0.13 
+## 6 R18       1     6 1     21          10        0.172            17.2      0.07 
 ## # ... with 8 more variables: T_Yield_pl_gr &lt;dbl&gt;, T_Biom_Yield &lt;dbl&gt;,
 ## #   T_Rust &lt;dbl&gt;, DtF &lt;dbl&gt;, DtFP &lt;dbl&gt;, DtP &lt;dbl&gt;, Asco &lt;dbl&gt;, Oidio &lt;dbl&gt;</code></pre>
 <pre class="r"><code>## Metan package allow to calculate BLUPs and others stability indexes and parameters. It also offer statistic help.
@@ -451,6 +443,59 @@ hist(R18$Oidio,  main = &quot;RawData distribution of Oidio %&quot;)</code></pre
 <p>Let’s try to create a function to add automatically a new column in our data frame. That columns will be the observation (every row in the data frame) of a trait properly normalized with their row/block (in the field design) controls and the average of the trait in the ENV (environment). First, it is necessary to create the Correction Factor function:</p>
 <p><span class="math inline">\(\frac{\overline{X}_{ENV}}{(\overline{X}_B + \overline{X}_R)/2} = CF_{B,R}\)</span></p>
 <p>Here, <span class="math inline">\(CF_{B,R}\)</span> is the Correction Factor for every observed trait, <span class="math inline">\({\overline{X}_{ENV}}\)</span> is the total average for the trait. <span class="math inline">\({\overline{X}_{B}}\)</span> is the average of the controls observed in the same trait of the Block and <span class="math inline">\({\overline{X}_{R}}\)</span> is the average of the controls observed in the same trait of the Row. Every observation multiplied by his <span class="math inline">\(CF_{B,R}\)</span>, means the value normalized in the new column.</p>
+<p>First, create the matrix of <span class="math inline">\(CF_{B,R}\)</span> for every rep:</p>
+<pre class="r"><code># Create a 19 x 19 matrix (of 19 rows and 19 blocks)
+  #vector for every rep:
+RowsR1 &lt;- c(GERM_R1$T_Germ)
+BlocksR1 &lt;- c(GERM_B1$T_Germ)
+
+my_matR1 &lt;- matrix(nrow=19, ncol=max(R18$BLOCK))
+for (i in 1:length(RowsR1)){
+  for (j in 1:length(BlocksR1)){
+    my_matR1[i,j]&lt;-(mean(R18$T_Germ))/((RowsR1[i]+BlocksR1[j])/2)       
+  }
+}
+format(round(my_matR1, 2), nsmall = 2) #show with two decimals</code></pre>
+<pre><code>##       [,1]   [,2]   [,3]   [,4]   [,5]   [,6]   [,7]   [,8]   [,9]   [,10] 
+##  [1,] &quot;0.96&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.05&quot;
+##  [2,] &quot;1.05&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.14&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.02&quot; &quot;1.08&quot; &quot;1.14&quot;
+##  [3,] &quot;0.94&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.02&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;0.92&quot; &quot;0.96&quot; &quot;1.02&quot;
+##  [4,] &quot;0.94&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.02&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;0.92&quot; &quot;0.96&quot; &quot;1.02&quot;
+##  [5,] &quot;0.99&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;1.08&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.08&quot;
+##  [6,] &quot;0.96&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.05&quot;
+##  [7,] &quot;0.96&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.05&quot;
+##  [8,] &quot;1.08&quot; &quot;1.08&quot; &quot;1.14&quot; &quot;1.18&quot; &quot;1.14&quot; &quot;1.08&quot; &quot;1.14&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.18&quot;
+##  [9,] &quot;1.05&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.14&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.02&quot; &quot;1.08&quot; &quot;1.14&quot;
+## [10,] &quot;0.99&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;1.08&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.08&quot;
+## [11,] &quot;0.96&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.05&quot;
+## [12,] &quot;0.94&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.02&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;0.92&quot; &quot;0.96&quot; &quot;1.02&quot;
+## [13,] &quot;0.99&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;1.08&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.08&quot;
+## [14,] &quot;0.99&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;1.08&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.08&quot;
+## [15,] &quot;0.99&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;1.08&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.08&quot;
+## [16,] &quot;0.96&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.05&quot;
+## [17,] &quot;1.05&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.14&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.02&quot; &quot;1.08&quot; &quot;1.14&quot;
+## [18,] &quot;0.96&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;1.05&quot;
+## [19,] &quot;1.05&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.14&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.02&quot; &quot;1.08&quot; &quot;1.14&quot;
+##       [,11]  [,12]  [,13]  [,14]  [,15]  [,16]  [,17]  [,18]  [,19] 
+##  [1,] &quot;0.99&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.94&quot; &quot;1.02&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.96&quot;
+##  [2,] &quot;1.08&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;1.11&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.05&quot;
+##  [3,] &quot;0.96&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.92&quot; &quot;0.99&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.94&quot;
+##  [4,] &quot;0.96&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.92&quot; &quot;0.99&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.94&quot;
+##  [5,] &quot;1.02&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.96&quot; &quot;1.05&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.99&quot;
+##  [6,] &quot;0.99&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.94&quot; &quot;1.02&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.96&quot;
+##  [7,] &quot;0.99&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.94&quot; &quot;1.02&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.96&quot;
+##  [8,] &quot;1.11&quot; &quot;1.08&quot; &quot;1.14&quot; &quot;1.08&quot; &quot;1.05&quot; &quot;1.14&quot; &quot;1.14&quot; &quot;1.08&quot; &quot;1.08&quot;
+##  [9,] &quot;1.08&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;1.11&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.05&quot;
+## [10,] &quot;1.02&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.96&quot; &quot;1.05&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.99&quot;
+## [11,] &quot;0.99&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.94&quot; &quot;1.02&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.96&quot;
+## [12,] &quot;0.96&quot; &quot;0.94&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.92&quot; &quot;0.99&quot; &quot;0.99&quot; &quot;0.94&quot; &quot;0.94&quot;
+## [13,] &quot;1.02&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.96&quot; &quot;1.05&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.99&quot;
+## [14,] &quot;1.02&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.96&quot; &quot;1.05&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.99&quot;
+## [15,] &quot;1.02&quot; &quot;0.99&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.96&quot; &quot;1.05&quot; &quot;1.05&quot; &quot;0.99&quot; &quot;0.99&quot;
+## [16,] &quot;0.99&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.94&quot; &quot;1.02&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.96&quot;
+## [17,] &quot;1.08&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;1.11&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.05&quot;
+## [18,] &quot;0.99&quot; &quot;0.96&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.94&quot; &quot;1.02&quot; &quot;1.02&quot; &quot;0.96&quot; &quot;0.96&quot;
+## [19,] &quot;1.08&quot; &quot;1.05&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.02&quot; &quot;1.11&quot; &quot;1.11&quot; &quot;1.05&quot; &quot;1.05&quot;</code></pre>
 <pre class="r"><code>CF_function &lt;- function(df, x) {
   
  p &lt;-  df %&gt;%

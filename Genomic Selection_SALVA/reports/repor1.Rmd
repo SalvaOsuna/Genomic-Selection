@@ -22,43 +22,27 @@ For three months, the PhD candidate Salvador Osuna-Caballero will be in CREA Lod
 
 A pea collection of 320 genotypes that include:
 
-+---------------+------------------+
 | Material      | n accessions (%) |
-+===============+==================+
+|---------------|------------------|
 | Landrace      | 175 (54.7 %)     |
-+---------------+------------------+
 | Cultivar      | 47 (14.7 %)      |
-+---------------+------------------+
 | Wild          | 45 (14.1%)       |
-+---------------+------------------+
 | Unknown       | 44 (13.8 %)      |
-+---------------+------------------+
 | Breeding Line | 9 (2.8 %)        |
-+---------------+------------------+
 
 Of the following *Pissum* spp. taxa diversity:
 
-+-----------------------------------------------+------------------+
 | Taxa                                          | n accessions (%) |
-+:==============================================+==================+
+|:----------------------------------------------|------------------|
 | *Pisum sativum* ssp. *sativum*                | 231 (72.8 %)     |
-+-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *arvense*                | 27 (8.8 %)       |
-+-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *elatius*                | 22 (7.2 %)       |
-+-----------------------------------------------+------------------+
 | *Pisum fulvum*                                | 17 (5.0 %)       |
-+-----------------------------------------------+------------------+
 | *Pisum abyssinicum*                           | 12 (3.8 %)       |
-+-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *elatius* var. *pumilio* | 4 (1.3 %)        |
-+-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *transcaucasicum*        | 2 (0.6 %)        |
-+-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *choresmicum*            | 1 (0.3 %)        |
-+-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *cinereum*               | 1 (0.3 %)        |
-+-----------------------------------------------+------------------+
 
 Constituting of following worldwide panel:
 
@@ -148,11 +132,11 @@ To solve the alpha lattice design the accessions are previously normalized with 
 library(metan)
 library(readxl)
 library(tidyverse)
-R18 <- read_excel("~/GitHub/GS/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
+R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
                     c("text", #ENV
-                      "text", #REP
-                      "text", #BLOCK
-                      "text", #ROW
+                      "numeric", #REP
+                      "numeric", #BLOCK
+                      "numeric", #ROW
                       "text", #GEN
                       "numeric", #GERM
                       "numeric", #BIOM
@@ -273,8 +257,55 @@ for (i in 1:length(RowsR1)){
   }
 }
 
-my_matR1
+format(round(my_matR1, 2), nsmall = 2) #show with two decimals
+
 ```
+```{r, include=FALSE}
+#The matrixes for Rep 2 and Rep 3
+
+RowsR2 <- c(GERM_R2$T_Germ)
+BlocksR2 <- c(GERM_B2$T_Germ)
+
+RowsR3 <- c(GERM_R3$T_Germ)
+BlocksR3 <- c(GERM_B3$T_Germ)
+
+my_matR2 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+for (i in 1:length(RowsR2)){
+  for (j in 1:length(BlocksR2)){
+    my_matR2[i,j]<-(mean(R18$T_Germ))/((RowsR2[i]+BlocksR2[j])/2)       
+  }
+}
+format(round(my_matR2, 2), nsmall = 2) #show with two decimals
+
+my_matR3 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+for (i in 1:length(RowsR3)){
+  for (j in 1:length(BlocksR3)){
+    my_matR3[i,j]<-(mean(R18$T_Germ))/((RowsR3[i]+BlocksR3[j])/2)       
+  }
+}
+format(round(my_matR3, 2), nsmall = 2) #show with two decimals
+```
+
+Now he have a matrix of 19 blocks x 19 columns equal to the experimental design for every replicate. To convert the matrix into a simple list to add in the original data frame:
+```{r}
+FCr1 <- unlist(as.data.frame(my_matR1))
+```
+```{r, include=FALSE}
+FCr2 <- unlist(as.data.frame(my_matR2))
+FCr3 <- unlist(as.list(my_matR3))
+
+```
+The next step is to bind the three reps in one new column with the Correction Factor of a determined trait and multiply the specific CF by their observation value.
+
+```{r}
+
+bind_cols(FCr1, FCr2)
+
+R18_t <- R18 %>%
+  mutate(GERM_t = (T_Germ * FC_GERM))
+```
+
+
 
 ```{r}
 CF_function <- function(df, x) {
