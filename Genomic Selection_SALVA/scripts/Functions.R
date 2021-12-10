@@ -34,8 +34,8 @@ fn.media.dataframe(R18, R18$Germ, controls = T)
 R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
                     c("text", #ENV
                       "text", #REP
-                      "text", #BLOCK
-                      "text", #ROW
+                      "numeric", #BLOCK
+                      "numeric", #ROW
                       "text", #GEN
                       "numeric", #GERM
                       "numeric", #BIOM
@@ -56,22 +56,22 @@ R18 %>%
   filter(GEN == "Control") %>%
   ggbetweenstats(
     x     = REP,
-    y     = T_Germ,
+    y     = T_Rust,
     title = "Distribution of Germination across Replicates in the Controls"
   )
 
-    ##Intentar hacer una función que haga solo esto:
-    F1 <- function(df) {
-      p <- df %>%
-        filter(GEN == "Control") %>%
-        ggbetweenstats(
-          x     = REP,
-          y     = T_Germ,
-          title = "Distribution of Germination across Replicates in the Controls"
-        )
-      return(p)
-    }
-    F1(R18)
+##Intentar hacer una función que haga solo esto:
+F1 <- function(df, trait) {
+  
+  p <- df %>% filter(GEN == "Control") %>% ggbetweenstats(
+    x     = REP,
+    y     = {{trait}},
+    title = "Distribution of Germination across Replicates in the Controls"
+  )
+  return(p)
+}
+F1(R18, "T_Germ")
+F1(R18, "Asco")
 
 #Tabla con las medias de los controles por ROW y REP
 GERM_R <- R18 %>%
@@ -79,26 +79,47 @@ GERM_R <- R18 %>%
   filter(GEN == "Control") %>%
   summarise(T_Germ = mean(T_Germ))
 
+GERM_R1 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "1") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+
+GERM_R2 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "2") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+
+GERM_R3 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "3") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+
 head(GERM_R)
 
 GERM_R %>% 
   ggplot(aes(x=REP,y=T_Germ, fill=REP)) +
   geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)
 
-    ##Intentar hacer una función que haga solo esto:
-    F2 <- function(df) {
-      list(
+##Intentar hacer una función que haga solo esto:
+F2 <- function(df) {
+  list(
     l <- df %>%
-        group_by(REP, ROW) %>%
-        filter(GEN == "Control") %>%
-        summarise(T_Germ = mean(T_Germ)),
+      group_by(REP, ROW) %>%
+      filter(GEN == "Control") %>%
+      summarise(T_Germ = mean(T_Germ)),
     
     p <- df %>% 
       ggplot(aes(x=REP,y=T_Germ, fill=REP)) +
       geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)
-      )
+  )
 }
-    F2(R18)
+F2(R18)
 
 
 #Tabla con las medias de los controles por BLOCK y REP 
@@ -107,6 +128,27 @@ GERM_B <- R18 %>%
   filter(GEN == "Control") %>%
   summarise(T_Germ = mean(T_Germ))
 
+GERM_B1 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "1") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
+GERM_B2 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "2") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
+GERM_B3 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "3") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
 head(GERM_B)
 
 GERM_B %>% 
@@ -114,6 +156,7 @@ GERM_B %>%
   geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)
 
 #Lista con el Factor de Corrección para cada R(i) y B(j)
+{
 as_tibble (FC_GERM <- c(
 col1 <- mean(R18$T_Germ)/(((GERM_R$T_Germ[1])+GERM_B$T_Germ[1:19])/2), #REP1
 col2 <- mean(R18$T_Germ)/(((GERM_R$T_Germ[2])+GERM_B$T_Germ[1:19])/2), #REP1
@@ -176,6 +219,7 @@ col56 <- mean(R18$T_Germ)/(((GERM_R$T_Germ[56])+GERM_B$T_Germ[39:57])/2), #REP3
 col57 <- mean(R18$T_Germ)/(((GERM_R$T_Germ[57])+GERM_B$T_Germ[39:57])/2) #REP3
 )
 )
+  }
 
 cbind(R18, FC_GERM)
 

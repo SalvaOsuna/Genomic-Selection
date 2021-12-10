@@ -22,27 +22,43 @@ For three months, the PhD candidate Salvador Osuna-Caballero will be in CREA Lod
 
 A pea collection of 320 genotypes that include:
 
++---------------+------------------+
 | Material      | n accessions (%) |
-|---------------|------------------|
++===============+==================+
 | Landrace      | 175 (54.7 %)     |
++---------------+------------------+
 | Cultivar      | 47 (14.7 %)      |
++---------------+------------------+
 | Wild          | 45 (14.1%)       |
++---------------+------------------+
 | Unknown       | 44 (13.8 %)      |
++---------------+------------------+
 | Breeding Line | 9 (2.8 %)        |
++---------------+------------------+
 
 Of the following *Pissum* spp. taxa diversity:
 
++-----------------------------------------------+------------------+
 | Taxa                                          | n accessions (%) |
-|:----------------------------------------------|------------------|
++:==============================================+==================+
 | *Pisum sativum* ssp. *sativum*                | 231 (72.8 %)     |
++-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *arvense*                | 27 (8.8 %)       |
++-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *elatius*                | 22 (7.2 %)       |
++-----------------------------------------------+------------------+
 | *Pisum fulvum*                                | 17 (5.0 %)       |
++-----------------------------------------------+------------------+
 | *Pisum abyssinicum*                           | 12 (3.8 %)       |
++-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *elatius* var. *pumilio* | 4 (1.3 %)        |
++-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *transcaucasicum*        | 2 (0.6 %)        |
++-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *choresmicum*            | 1 (0.3 %)        |
++-----------------------------------------------+------------------+
 | *Pisum sativum* ssp. *cinereum*               | 1 (0.3 %)        |
++-----------------------------------------------+------------------+
 
 Constituting of following worldwide panel:
 
@@ -130,35 +146,153 @@ To solve the alpha lattice design the accessions are previously normalized with 
 
 ```{r, include= F}
 library(metan)
-library(openxlsx)
+library(readxl)
 library(tidyverse)
-R18 <- read.xlsx("C:/Users/Salva/Desktop/DOCTORADO NUBE/ENSAYOS/GS/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData")
+R18 <- read_excel("~/GitHub/GS/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
+                    c("text", #ENV
+                      "text", #REP
+                      "text", #BLOCK
+                      "text", #ROW
+                      "text", #GEN
+                      "numeric", #GERM
+                      "numeric", #BIOM
+                      "numeric", #BIOM_PL
+                      "numeric", #YIELD
+                      "numeric", #YIELD_PL
+                      "numeric", #BIOM/YIELD
+                      "numeric", #Rust in %
+                      "numeric", #Dtf
+                      "numeric", #DtFP
+                      "numeric", #DtP
+                      "numeric", #Ascochyta in %
+                      "numeric"  #Oidio in %
+                      )) 
 ```
 
 ```{r}
-## Metan package allow to calculate BLUPs and others stability indexes and parameters. It Also offer statistic help.
+#Load data frame:
+head(R18)
 
+```
+
+```{r}
+## Metan package allow to calculate BLUPs and others stability indexes and parameters. It also offer statistic help.
+library(metan)
 gen_alpha <- 
   gamem(R18, #data
         GEN, #genotype
         REP, #replicate
-        Germ, #trait
+        c("T_Rust", "Asco", "Oidio"), # diseases trait
         block = BLOCK) #block
 ```
 
 ```{r}
-plot(gen_alpha, type = "re")
+#plot(gen_alpha, type = "re")
+get_model_data(gen_alpha)
 
 ```
 
-```{r}
-##BLUP histogram of Best Unlinear Unbiased Prediction of Germ trait in 2018 season:
+```{r, fig.height= 10, fig.width= 8}
+##BLUP histogram for diseases in 2018 season:
+par(mfrow = c(3,2))
 
-hist(gen_alpha$Germ$BLUPgen$Predicted)
+hist(gen_alpha$T_Rust$BLUPgen$Predicted , main = "BLUP distribution of Rust %")
+hist(R18$T_Rust,  main = "RawData distribution of Rust %")
 
+hist(gen_alpha$Asco$BLUPgen$Predicted , main = "BLUP distribution of Ascochyta %")
+hist(R18$Asco,  main = "RawData distribution of Ascochyta %")
+
+hist(gen_alpha$Oidio$BLUPgen$Predicted , main = "BLUP distribution of Oidio %")
+hist(R18$Oidio,  main = "RawData distribution of Oidio %")
 ```
 
 ### Task 3. Create useful functions to recycle the console
+
+Let's try to create a function to add automatically a new column in our data frame. That columns will be the observation (every row in the data frame) of a trait properly normalized with their row/block (in the field design) controls and the average of the trait in the ENV (environment). First, it is necessary to create the Correction Factor function:
+
+$\frac{\overline{X}_{ENV}}{(\overline{X}_B + \overline{X}_R)/2} = CF_{B,R}$
+
+Here, $CF_{B,R}$ is the Correction Factor for every observed trait, ${\overline{X}_{ENV}}$ is the total average for the trait. ${\overline{X}_{B}}$ is the average of the controls observed in the same trait of the Block and ${\overline{X}_{R}}$ is the average of the controls observed in the same trait of the Row. Every observation multiplied by his $CF_{B,R}$, means the value normalized in the new column.
+
+First, create the matrix of $CF_{B,R}$ for every rep:
+
+```{r, include = F}
+GERM_B1 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "1") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
+GERM_B2 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "2") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
+GERM_B3 <- R18 %>%
+  group_by(BLOCK) %>%
+  filter(REP == "3") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(BLOCK)
+
+GERM_R1 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "1") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+
+GERM_R2 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "2") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+
+GERM_R3 <- R18 %>%
+  group_by(ROW) %>%
+  filter(REP == "3") %>%
+  filter(GEN == "Control") %>%
+  summarise(T_Germ = mean(T_Germ)) %>%
+  arrange(ROW)
+```
+
+```{r}
+# Create a 19 x 19 matrix (of 19 rows and 19 blocks)
+  #vector for every rep:
+RowsR1 <- c(GERM_R1$T_Germ)
+BlocksR1 <- c(GERM_B1$T_Germ)
+
+my_matR1 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+for (i in 1:length(RowsR1)){
+  for (j in 1:length(BlocksR1)){
+    my_matR1[i,j]<-(mean(R18$T_Germ))/((RowsR1[i]+BlocksR1[j])/2)       
+  }
+}
+
+my_matR1
+```
+
+```{r}
+CF_function <- function(df, x) {
+  
+ p <-  df %>%
+  filter(GEN == "Control") %>%
+  ggbetweenstats(
+    x     = REP,
+    y     = x,
+    title = "Distribution of Germination across Replicates in the Controls"
+  )
+ return(p)
+}
+```
+
+```{r}
+#CF_function(df = R18, x = R18$T_Germ)
+```
 
 ```{r}
 
@@ -177,16 +311,8 @@ fn.media.dataframe <- function(df, argmivector, controls) {
 }
 ```
 
-```{r}
-fn.media.dataframe(R18, R18$Germ, controls = T)
-
-```
-
-```{r}
-fn.media.dataframe(R18, R18$Germ, controls = F)
-
-```
-
 ### Task 4. Start a report
 
-Well... here we are...\
+Well... here we are...
+
+## References
