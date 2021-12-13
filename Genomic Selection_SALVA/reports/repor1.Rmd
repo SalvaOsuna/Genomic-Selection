@@ -132,6 +132,8 @@ To solve the alpha lattice design the accessions are previously normalized with 
 library(metan)
 library(readxl)
 library(tidyverse)
+library(ggstatsplot)
+library(hrbrthemes)
 R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
                     c("text", #ENV
                       "numeric", #REP
@@ -155,12 +157,15 @@ R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensay
 
 ```{r}
 #Load data frame:
+R18 <- as.data.frame(R18)
+class(R18)
+
 head(R18)
 
 ```
 
 ```{r}
-## Metan package allow to calculate BLUPs and others stability indexes and parameters. It also offer statistic help.
+## Metan package allow to calculate BLUPs and others stability indexes and parameters. It also offers statistic help.
 library(metan)
 gen_alpha <- 
   gamem(R18, #data
@@ -201,6 +206,7 @@ Here, $CF_{B,R}$ is the Correction Factor for every observed trait, ${\overline{
 First, create the matrix of $CF_{B,R}$ for every rep:
 
 ```{r, include = F}
+#Create vectors with the block/row average for every REP:
 GERM_B1 <- R18 %>%
   group_by(BLOCK) %>%
   filter(REP == "1") %>%
@@ -260,6 +266,7 @@ for (i in 1:length(RowsR1)){
 format(round(my_matR1, 2), nsmall = 2) #show with two decimals
 
 ```
+
 ```{r, include=FALSE}
 #The matrixes for Rep 2 and Rep 3
 
@@ -286,60 +293,190 @@ for (i in 1:length(RowsR3)){
 format(round(my_matR3, 2), nsmall = 2) #show with two decimals
 ```
 
-Now he have a matrix of 19 blocks x 19 columns equal to the experimental design for every replicate. To convert the matrix into a simple list to add in the original data frame:
-```{r}
-FCr1 <- unlist(as.data.frame(my_matR1))
-```
-```{r, include=FALSE}
-FCr2 <- unlist(as.data.frame(my_matR2))
-FCr3 <- unlist(as.list(my_matR3))
+Now he have a matrix of 19 blocks x 19 rows equal to the experimental design for every replicate. To convert the matrix into a simple list to add in the original data frame:
 
+```{r}
+CF1<- as.tibble(unlist(c(my_matR1)))
 ```
+
+```{r, include=FALSE}
+CF2 <- as.tibble(unlist(c(my_matR2)))
+CF3 <- as.tibble(unlist(c(my_matR3)))
+```
+
 The next step is to bind the three reps in one new column with the Correction Factor of a determined trait and multiply the specific CF by their observation value.
 
 ```{r}
-
-bind_cols(FCr1, FCr2)
+FC_GERM <- rbind(CF1, CF2, CF3)
 
 R18_t <- R18 %>%
-  mutate(GERM_t = (T_Germ * FC_GERM))
+ mutate(GERM_t = as.numeric(unlist(T_Germ * FC_GERM)))
+
+head(R18_t)
 ```
 
+```{r, warning=FALSE}
+#Check the differences between values normalized and row values:
+comparison <- data.frame(type = c(rep("Germ", 1083),rep("Germ_T", 1083)), 
+               value = c(R18_t$T_Germ, R18_t$GERM_t))
 
+p <- comparison %>%
+  ggplot( aes(x=value, fill=type)) +
+  geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', bins = 10) +
+  scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  theme_ipsum() +
+  labs(fill="")
+p
+```
+
+Finally, create a function to do automatically the previous work:
 
 ```{r}
-CF_function <- function(df, x) {
+F1 <- function(df, trait) {
   
- p <-  df %>%
-  filter(GEN == "Control") %>%
-  ggbetweenstats(
+  #Is there differences between REPs in the control for the trait selected??
+  p <- df %>% filter(GEN == "Control") %>% ggbetweenstats(
     x     = REP,
-    y     = x,
-    title = "Distribution of Germination across Replicates in the Controls"
+    y     = {{trait}},
+    title = c("Distribution of {{trait}} across Replicates in the Controls")
   )
- return(p)
+  return(p)
+  }
+  
+F2 <- function(df, trait, mean_trait) {
+  #Create the vectors for the BLOCK/ROW average by REP
+  trait_B1 <- df %>%
+    group_by(BLOCK) %>%
+    filter(REP == "1") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+   arrange(BLOCK)
+
+  trait_B2 <- df %>%
+   group_by(BLOCK) %>%
+   filter(REP == "2") %>%
+   filter(GEN == "Control") %>%
+   summarise(trait = mean({{trait}})) %>%
+   arrange(BLOCK)
+
+  trait_B3 <- df %>%
+   group_by(BLOCK) %>%
+   filter(REP == "3") %>%
+   filter(GEN == "Control") %>%
+   summarise(trait = mean({{trait}})) %>%
+   arrange(BLOCK)
+
+  trait_R1 <- df %>%
+    group_by(ROW) %>%
+    filter(REP == "1") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(ROW)
+
+  trait_R2 <- df %>%
+    group_by(ROW) %>%
+    filter(REP == "2") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(ROW)
+
+  trait_R3 <- df %>%
+    group_by(ROW) %>%
+    filter(REP == "3") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(ROW)
+
+  #Create the matrixes with the CF for the trait selected:
+  RowsR1 <- c(trait_R1$trait)
+  BlocksR1 <- c(trait_B1$trait)
+  
+  RowsR2 <- c(trait_R2$trait)
+  BlocksR2 <- c(trait_B2$trait)
+
+  RowsR3 <- c(trait_R3$trait)
+  BlocksR3 <- c(trait_B3$trait)
+  
+    my_matR1 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
+  for (i in 1:length(RowsR1)){
+    for (j in 1:length(BlocksR1)){
+      my_matR1[i,j] <- mean_trait/((RowsR1[i]+BlocksR1[j])/2)     
+    }
+  }
+  
+    my_matR2 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+  for (i in 1:length(RowsR2)){
+    for (j in 1:length(BlocksR2)){
+      my_matR2[i,j]<-(mean(R18$T_Germ))/((RowsR2[i]+BlocksR2[j])/2)       
+    }
+  }
+    
+    my_matR3 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+  for (i in 1:length(RowsR3)){
+    for (j in 1:length(BlocksR3)){
+     my_matR3[i,j]<-(mean(R18$T_Germ))/((RowsR3[i]+BlocksR3[j])/2)       
+    }
+  }
+  
+  #Convert the matrixes to one column to add it in the df  
+  CF1<- as.tibble(unlist(c(my_matR1)))
+  CF2 <- as.tibble(unlist(c(my_matR2)))
+  CF3 <- as.tibble(unlist(c(my_matR3)))
+  FC_trait <- rbind(CF1, CF2, CF3)
+
+  #Add to the data frame the correction factor column and multiply by its trait, creating a new column
+  
+  df <- df %>%
+ mutate(trait = as.numeric(unlist({{trait}} * FC_trait)))
+  
+  return(df)  
+    
 }
 ```
 
 ```{r}
-#CF_function(df = R18, x = R18$T_Germ)
+F1(R18, T_Germ)
 ```
 
 ```{r}
+#Data frame with the new column "trait" normalized with the controls for that trait
+newdf <- F2(R18, T_Germ, mean_trait = mean(R18$T_Germ))
+head(newdf)
+```
+
+```{r}
+#Data frame with the new column "trait" normalized with the controls for that trait
+newdf2 <- F2(R18, T_Rust, mean_trait = mean(R18$T_Rust))
+head(newdf2)
+```
+
+**doubts:**
+
+-   If there is a NaN in the raw data set, the total output column is NAN.. how can I solve that?
+
+```{=html}
+<!-- -->
+```
+-   The new output column name is "trait", but that name depends of the original trait selected... how can I solve that?
+
+-   
+
+```{r, include=FALSE}
+df1<- F1(R18, T_Germ)
+```
+
+```{r, include=FALSE}
 
 ##Create a function that give you the average of a trait (selected as a vector) and select the controls inside de df if you select it.
 
-fn.media.dataframe <- function(df, argmivector, controls) {
+fn.media.dataframe <- function(df, trait) {
   
   print("The mean of the vector selected in the DataFrame is")
-  print(paste("Mean: ",round(mean(argmivector, ),2)))
+  print(paste("Mean: ",round(mean({{trait}}, ),2)))
   
-  if (controls == T) {
-    print(Control <- filter(df, GEN == "Control"))
-  } else {
-    print("No controls list shown")
-  }
 }
+
+fn.media.dataframe(R18, R18$T_Germ)
 ```
 
 ### Task 4. Start a report

@@ -65,7 +65,7 @@ F1 <- function(df, trait) {
   p <- df %>% filter(GEN == "Control") %>% ggbetweenstats(
     x     = REP,
     y     = {{trait}},
-    title = "Distribution of Germination across Replicates in the Controls"
+    title = c("Distribution of {{trait}} across Replicates in the Controls")
   )
   return(p)
 }
