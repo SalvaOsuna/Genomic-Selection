@@ -156,9 +156,8 @@ R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensay
 ```
 
 ```{r}
-#Load data frame:
+#Load as data frame:
 R18 <- as.data.frame(R18)
-class(R18)
 
 head(R18)
 
@@ -166,7 +165,6 @@ head(R18)
 
 ```{r}
 ## Metan package allow to calculate BLUPs and others stability indexes and parameters. It also offers statistic help.
-library(metan)
 gen_alpha <- 
   gamem(R18, #data
         GEN, #genotype
@@ -454,9 +452,8 @@ head(newdf2)
 
 -   If there is a NaN in the raw data set, the total output column is NAN.. how can I solve that?
 
-```{=html}
 <!-- -->
-```
+
 -   The new output column name is "trait", but that name depends of the original trait selected... how can I solve that?
 
 -   
