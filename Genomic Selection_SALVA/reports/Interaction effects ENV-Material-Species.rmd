@@ -1,0 +1,178 @@
+---
+title: "Report3"
+author: "Salvador Osuna-Caballero"
+date: "24/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Describe
+
+Objective: To evaluate if the disease severity to rust is different between ENV and Specie/Material, and if there is interaction between those factors.
+
+```{r, include=FALSE}
+# revisa si es necesario instalar los paquetes
+list.of.packages <- c("tidyverse",
+"ggpubr",
+"ggstatsplot",
+"openintro",
+"rstatix",
+"DescTools",
+"WRS2",
+"metan",
+"ggstastplot",
+"openxlsx",
+"readxl")
+new.packages <- list.of.packages[!(list.of.packages %in%
+installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(tidyverse) # manipulación y visualización de datos
+library(ggpubr) # gráficos sencillos
+library(ggstatsplot) # gráficos listos para publicar
+library(openintro) # datos de ejemplo
+library(rstatix) # pruebas P/NP y estadísticos con tuberías.
+library(DescTools) # prueba robusta de Yuen
+library(WRS2) # tamaño de efecto robustos
+library(metan)
+library(ggstatsplot)
+library(openxlsx)
+library(readxl)
+```
+
+Solve the alpha lattice design in the field and the RCBD in controlled conditions to create an unique data frame with the BLUPs for disease severity to Rust in Co-18, Co-19, Co-20, Co-all (considering the interaction between ENVs) and Co-CC.
+
+```{r pressure, echo=FALSE}
+BLUPs_anova <- read_excel("C:/Users/Salva/Documents/GitHub/Rust-collection/BLUP_ALL_info.xlsx", 
+                     sheet = "R", 
+                     col_types = 
+                       c("text", #GEN
+                         "text", #ENV
+                         "numeric", #BLUP
+                         "text", #Reference
+                         "text", #Specie
+                         "text", #Name
+                         "text", #Origen
+                         "text", #Material
+                         "text" #Structure
+                         ))
+
+BLUPs_anova %>%
+group_by(ENV, Material) %>%
+get_summary_stats(BLUP, type = "mean_sd")
+```
+
+Plotting:
+
+```{r}
+ggplot(data = BLUPs_anova, aes(x = Material, y = BLUP)) +
+geom_boxplot(aes(fill = ENV), width = 0.8) + theme_classic()
+```
+
+```{r}
+ggplot(data = BLUPs_anova, aes(x = ENV, y = BLUP)) +
+geom_boxplot(aes(fill = Material), width = 0.8) + theme_classic()
+```
+
+Normality:
+
+```{r}
+ggqqplot(BLUPs_anova, "BLUP", ggtheme = theme_bw()) +
+facet_grid(Material ~ ENV)
+
+```
+
+Homogenidad de varianza:
+
+```{r}
+BLUPs_anova %>% levene_test(BLUP ~ Material*ENV) 
+```
+
+Valores atípicos\
+
+```{r}
+BLUPs_anova %>%
+  group_by(ENV, Material) %>%
+  identify_outliers(BLUP) 
+```
+
+Ajustar el modelo
+
+```{r}
+BLUPs_anova %>%
+  anova_test(BLUP ~ Material)
+
+BLUPs_anova %>%
+  anova_test(BLUP ~ Species)
+
+BLUPs_anova %>%
+  anova_test(BLUP ~ ENV)
+```
+
+Prueba post-hoc para una interacción significativa ( como es el caso)
+
+BLUPs_anova %\>%
+
+pairwise_t\_test(BLUP \~ ENV, p.adjust.method = "holm")%\>%
+
+filter(p.adj \< 0.05)
+
+```{r}
+BLUPs_anova %>%
+pairwise_t_test(BLUP ~ Material, p.adjust.method = "holm")%>%
+filter(p.adj < 0.05)
+
+BLUPs_anova %>%
+pairwise_t_test(BLUP ~ ENV, p.adjust.method = "holm")%>%
+filter(p.adj < 0.05)
+
+BLUPs_anova %>%
+pairwise_wilcox_test(BLUP ~ Species, p.adjust.method = "holm")%>%
+filter(p.adj < 0.05)
+```
+
+```{r}
+BLUPs_anova %>%
+group_by(Material) %>%
+pairwise_t_test(BLUP ~ ENV, p.adjust.method = "holm") %>%
+filter(p.adj < 0.001)
+```
+
+```{r}
+BLUPs_anova %>%
+group_by(Species) %>%
+pairwise_t_test(BLUP ~ ENV, p.adjust.method = "holm") %>%
+filter(p.adj < 0.001)
+```
+
+```{r}
+BLUPs_anova %>%
+group_by(Species) %>%
+pairwise_t_test(ENV ~ BLUP, p.adjust.method = "holm") %>%
+filter(p.adj < 0.01)
+```
+
+Plotting
+
+```{r}
+grouped_ggbetweenstats(data = BLUPs_anova, x = Species, y = BLUP, grouping.var = ENV, type = "np",
+results.subtitle = F, messages = F, var.equal = T, p.adjust.method = "holm")
+```
+
+```{r}
+ggbetweenstats(x = Species, y = BLUP, data = BLUPs_anova, 
+               p.adjust.method = "none", type = "np",
+               bf.message = FALSE, var.equal = F,
+               ggsignif.args = list(textsize = 1.5, tip_length = 0.01)) +
+  theme(text = element_text(size = 8), plot.subtitle = element_text(size=8))
+```
+
+\
+\
+
+\
+
+\
+\

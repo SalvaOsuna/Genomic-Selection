@@ -286,3 +286,121 @@ myDF_norm = myDF_norm[
             c("Grouping",cols_features),
             with=FALSE]
 ][,crt_normalization(.SD),by='Grouping']
+
+
+
+#función para sustituir outliers por debajo y por encima del 5th y 95th percertil:
+
+fun.percentile <- function(x){
+  quantiles <- quantile( x, c(.05, .95 ) )
+  x[ x < quantiles[1] ] <- quantiles[1]
+  x[ x > quantiles[2] ] <- quantiles[2]
+  x
+}
+
+F1 <- function(df, trait) {
+  
+#Is there differences between REPs in the control for the trait selected??
+  p <- df %>% filter(GEN == "Control") %>% ggbetweenstats(
+    x     = REP,
+    y     = {{trait}},
+    title = c("Distribution of {{trait}} across Replicates in the Controls")
+  )
+  return(p)
+}
+
+#Esta función crea una nueva columna con el valor corregido con los controles en el diseño experimental de SalvaGwas
+F2 <- function(df, trait) {
+  #Create the vectors for the BLOCK/ROW average by REP
+  trait_B1 <- df %>%
+    group_by(BLOCK) %>%
+    filter(REP == "1") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(BLOCK)
+  
+  trait_B2 <- df %>%
+    group_by(BLOCK) %>%
+    filter(REP == "2") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(BLOCK)
+  
+  trait_B3 <- df %>%
+    group_by(BLOCK) %>%
+    filter(REP == "3") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(BLOCK)
+  
+  trait_R1 <- df %>%
+    group_by(ROW) %>%
+    filter(REP == "1") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(ROW)
+  
+  trait_R2 <- df %>%
+    group_by(ROW) %>%
+    filter(REP == "2") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(ROW)
+  
+  trait_R3 <- df %>%
+    group_by(ROW) %>%
+    filter(REP == "3") %>%
+    filter(GEN == "Control") %>%
+    summarise(trait = mean({{trait}})) %>%
+    arrange(ROW)
+  
+  #Create the matrixes with the CF for the trait selected:
+  RowsR1 <- c(trait_R1$trait)
+  BlocksR1 <- c(trait_B1$trait)
+  
+  RowsR2 <- c(trait_R2$trait)
+  BlocksR2 <- c(trait_B2$trait)
+  
+  RowsR3 <- c(trait_R3$trait)
+  BlocksR3 <- c(trait_B3$trait)
+  
+  mean_trait <- mean(df[,trait])
+  
+  my_matR1 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
+  for (i in 1:length(RowsR1)){
+    for (j in 1:length(BlocksR1)){
+      my_matR1[i,j] <- mean_trait/((RowsR1[i]+BlocksR1[j])/2)     
+    }
+  }
+  
+  my_matR2 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
+  for (i in 1:length(RowsR2)){
+    for (j in 1:length(BlocksR2)){
+      my_matR2[i,j]<-mean_trait/((RowsR2[i]+BlocksR2[j])/2)       
+    }
+  }
+  
+  my_matR3 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
+  for (i in 1:length(RowsR3)){
+    for (j in 1:length(BlocksR3)){
+      my_matR3[i,j]<-mean_trait/((RowsR3[i]+BlocksR3[j])/2)       
+    }
+  }
+  
+  #Convert the matrixes to one column to add it in the df  
+  CF1<- as.tibble(unlist(c(my_matR1)))
+  CF2 <- as.tibble(unlist(c(my_matR2)))
+  CF3 <- as.tibble(unlist(c(my_matR3)))
+  FC_trait <- rbind(c(CF1, CF2, CF3))
+  
+  #Add to the data frame the correction factor column and multiply by its trait, creating a new column
+  
+  
+  #df <- df %>% mutate(trait_t = as.numeric(unlist({{trait}} * FC_trait)))
+  dfnew <- df %>% mutate(trait_t = as.numeric(unlist(df[,trait])) * as.numeric(FC_BIOM$value))
+  # mutate(yield_plant_gT = as.numeric(unlist(yield_plant_g * FC_BIOM$value)))
+  
+  return(dfnew)  
+  
+}
+

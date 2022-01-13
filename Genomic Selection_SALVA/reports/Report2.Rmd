@@ -1,0 +1,286 @@
+---
+title: "Report2_Exploring Data"
+author: "Salvador Osuna-Caballero"
+date: "6/12/2021"
+output:
+  html_document:
+    toc: true
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The data has been previously defined. In summary we have 4 ENV (three field seasons plus one screening in controlled condition). Here we explore the data to made some correlations, visualize them and check the normality assumptions (to transform the values if they need it).
+
+## Explore data
+
+### Load the necessary packages
+
+```{r, message=FALSE, warning=FALSE}
+# Check if it is neccesary install the packages
+list.of.packages <- c("tidyverse",
+"ggpubr",
+"ggstatsplot",
+"openintro",
+"rstatix",
+"DescTools",
+"WRS2",
+"metan")
+
+new.packages <- list.of.packages[!(list.of.packages %in%
+installed.packages()[,"Package"])]
+
+if(length(new.packages)) install.packages(new.packages)
+
+library(tidyverse) # manipulation and data visualization
+library(ggpubr) # dummy graphs
+library(ggstatsplot) # fancy graphs
+library(rstatix) # tests P/NP
+library(DescTools) #Yuen robust test
+library(WRS2) # robust effect size
+library(metan) #to rid the alpha lattice design
+library(openxlsx)#read excel files
+library(readxl) #read excel files
+```
+
+### Load the data
+
+```{r}
+#season 2018
+R18_nc <- read_excel("C:/Users/Salva/Documents/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/R18_19_20.xlsx", 
+                     sheet = "R18_nc", 
+                     col_types = 
+                       c("text", #ENV
+                         "text", #REP
+                         "text", #BLOCK
+                         "numeric", #ROW
+                         "text", #Specie
+                         "text", #Material
+                         "text", #Structure
+                         "numeric", #GEN
+                         "numeric", #GERM
+                         "numeric", #DtF
+                         "numeric", #DtP
+                         "numeric", #GDD_F	
+                         "numeric", #GDD_P
+                         "numeric", #biomass_pl
+                         "numeric", #yield_pl
+                         "numeric", #Asco
+                         "numeric", #Rust
+                         "numeric" #Oidio
+                       ))
+R18_nc$ENV <- as.factor(R18_nc$ENV)
+R18_nc$REP <- as.factor(R18_nc$REP)
+R18_nc$BLOCK <- as.factor(R18_nc$BLOCK)
+R18_nc$ROW <- as.factor(R18_nc$ROW)
+R18_nc$Material <- as.factor(R18_nc$Material)
+R18_nc$Species <- as.factor(R18_nc$Species)
+R18_nc$Structure <- as.factor(R18_nc$Structure)
+R18_nc$GEN <- as.factor(R18_nc$GEN)
+
+#season 2019
+R19_nc <- read_excel("C:/Users/Salva/Documents/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/R18_19_20.xlsx", 
+                     sheet = "R19_nc", 
+                     col_types = 
+                       c("text", #ENV
+                         "text", #REP
+                         "text", #BLOCK
+                         "numeric", #ROW
+                         "text", #Specie
+                         "text", #Material
+                         "text", #Structure
+                         "text", #GEN
+                         "numeric", #GERM
+                         "numeric", #GDD_FF
+                         "numeric", #GDD_F
+                         "numeric", #GDD_FP	
+                         "numeric", #GDD_P
+                         "numeric", #GDD_M
+                         "numeric", #Rust
+                         "numeric", #Biom_pl_g
+                         "numeric" #yield_pl_g
+                       ))
+R19_nc$ENV <- as.factor(R19_nc$ENV)
+R19_nc$REP <- as.factor(R19_nc$REP)
+R19_nc$BLOCK <- as.factor(R19_nc$BLOCK)
+R19_nc$ROW <- as.factor(R19_nc$ROW)
+R19_nc$Material <- as.factor(R19_nc$Material)
+R19_nc$Specie <- as.factor(R19_nc$Specie)
+R19_nc$GEN <- as.factor(R19_nc$GEN)
+
+#season 2020
+R20_nc <- read_excel("C:/Users/Salva/Documents/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/R18_19_20.xlsx", 
+                     sheet = "R20_nc", 
+                     col_types = 
+                       c("text", #ENV
+                         "text", #REP
+                         "text", #BLOCK
+                         "numeric", #ROW
+                         "text", #Specie
+                         "text", #Material
+                         "text", #Structure
+                         "text", #GEN
+                         "numeric", #GERM
+                         "numeric", #GDD_FF
+                         "numeric", #GDD_F
+                         "numeric", #GDD_FP	
+                         "numeric", #GDD_P
+                         "numeric", #GDD_M
+                         "numeric", #Rust
+                         "numeric", #Asco
+                         "numeric", #Oidio
+                         "numeric", #Biom_pl_g
+                         "numeric" #yield_pl_g
+                       )) 
+```
+
+### Inspect the data
+
+In this table we can consider to remove the outliers in case they are too extremes .
+
+```{r, warning=FALSE}
+inspect(R18_nc, plot = FALSE)
+
+```
+
+```{r, warning=FALSE}
+inspect(R19_nc, plot = FALSE)
+```
+
+### Get the BLUPs and evaluate the assumptions
+
+We get rid with the alpha lattice design obtaining the BLUP from the three replicates, considering also the block:
+
+```{r, message=FALSE, warning=FALSE}
+gen_alphaR18 <- 
+  gamem(R18_nc, 
+        GEN, 
+        REP, 
+        resp = c("GERM", "DtF", "DtP", "GDD_F", "GDD_P", "Biom_plant_g", "yield_plant_g", "Asco_Adj", "Rust", "Rust_adj", "Oidio"), 
+        BLOCK)
+```
+
+```{r, message=FALSE, warning=FALSE}
+gen_alphaR19 <- 
+  gamem(R19_nc, 
+        GEN, 
+        REP, 
+        resp = c("GERM_adj", "GDD_FF", "GDD_F", "GDD_FP", "GDD_P", "Biom_plant_g", "yield_plant_g", "GDD_M", "Rust", "Rust_adj"), 
+        BLOCK)
+```
+
+**Details of the analysis:**
+
+```{r, message=FALSE, warning=FALSE}
+get_model_data(gen_alphaR18, "details")
+```
+
+```{r, message=FALSE, warning=FALSE}
+get_model_data(gen_alphaR19, "details")
+```
+
+**Likelihood ratio test for genotype effect:**
+
+```{r, message=FALSE, warning=FALSE}
+get_model_data(gen_alphaR18, "lrt")
+```
+
+```{r, message=FALSE, warning=FALSE}
+get_model_data(gen_alphaR19, "lrt")
+```
+
+In all of the variables the genotype effect explain most of the variance instead the interaction REP:BLOCK.
+
+**Variance components and genetic parameters:**
+
+```{r, message=FALSE, warning=FALSE}
+get_model_data(gen_alphaR18, "genpar") %>%
+  print()
+```
+
+```{r, message=FALSE, warning=FALSE}
+get_model_data(gen_alphaR19, "genpar") %>%
+  print()
+```
+
+**Diagnostic plot for BLUP residuals in season 2018:**
+
+```{r fig.show="hold", out.width="50%", warning=FALSE}
+par(mfrow=c(1,2))
+
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 1)
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 4)
+```
+
+```{r, fig.show="hold", out.width="50%", warning=FALSE}
+par(mfrow=c(1,2))
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 5)
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 6)
+```
+
+```{r, fig.show="hold", out.width="50%", warning=FALSE}
+par(mfrow=c(1,2))
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 7)
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 8)
+```
+
+```{r, fig.show="hold", out.width="50%", warning=FALSE}
+par(mfrow=c(1,2))
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 9)
+plot(gen_alphaR18,  which = c(2,5), labels = TRUE, var = 11)
+```
+
+**Diagnostic plot for BLUP residuals in season 2018 (RUST ONLY):**
+
+```{r, fig.show="hold", out.width="50%", warning=FALSE}
+plot(gen_alphaR19,  which = c(2,5), labels = TRUE, var = 9)
+```
+
+**Correlation between traits in season 2018:**
+
+```{r, message=FALSE, warning=FALSE}
+material <- select(R18_nc, c(5,6))
+material <- material[1:323,1:2]
+  
+BLUP18 <- as.data.frame(get_model_data(gen_alphaR18, "blupg"))
+BLUP18 <-cbind(BLUP18, material)
+corr_plot(BLUP18, GDD_F, GDD_P, Biom_plant_g, yield_plant_g, Asco_Adj, Rust, Oidio, col.by = Material)
+```
+
+**Correlation between traits in season 2019:**
+
+```{r, message=FALSE, warning=FALSE}
+material19 <- select(R19_nc, c(5,6))
+material19 <- material[1:322,1:2]
+  
+BLUP19 <- as.data.frame(get_model_data(gen_alphaR19, "blupg"))
+BLUP19 <-cbind(BLUP19, material19)
+corr_plot(BLUP19, GDD_FF, GDD_FP, Biom_plant_g, yield_plant_g, GDD_P, Rust, GDD_M, col.by = Material)
+```
+
+**Response to rust by Material or Specie in season 2018:**
+
+```{r}
+ggbetweenstats(x = Material, y = Rust, data = BLUP18, 
+               p.adjust.method = "none", type = "np",
+               bf.message = FALSE, var.equal = F,
+               ggsignif.args = list(textsize = 1.5, tip_length = 0.01)) +
+  theme(text = element_text(size = 8), plot.subtitle = element_text(size=8))
+```
+
+**Response to rust by Material or Specie in season 2019:**
+
+```{r}
+ggbetweenstats(x = Specie, y = Rust, data = BLUP19, 
+               p.adjust.method = "bonferroni", type = "robust",
+               bf.message = FALSE, var.equal = F,
+               ggsignif.args = list(textsize = 1.5, tip_length = 0.01)) +
+  theme(text = element_text(size = 8), plot.subtitle = element_text(size=8))
+```
+
+\
+\

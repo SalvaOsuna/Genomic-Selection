@@ -134,42 +134,51 @@ library(readxl)
 library(tidyverse)
 library(ggstatsplot)
 library(hrbrthemes)
-R18 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/Ensayocampo2018.xlsx", sheet = "RawData", col_types = 
-                    c("text", #ENV
-                      "numeric", #REP
-                      "numeric", #BLOCK
-                      "numeric", #ROW
-                      "text", #GEN
-                      "numeric", #GERM
-                      "numeric", #BIOM
-                      "numeric", #BIOM_PL
-                      "numeric", #YIELD
-                      "numeric", #YIELD_PL
-                      "numeric", #BIOM/YIELD
-                      "numeric", #Rust in %
-                      "numeric", #Dtf
-                      "numeric", #DtFP
-                      "numeric", #DtP
-                      "numeric", #Ascochyta in %
-                      "numeric"  #Oidio in %
-                      )) 
+R20 <- read_excel("~/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/R18_19_20.xlsx", 
+                     sheet = "R20", 
+                     col_types = 
+                       c("text", #ENV
+                         "numeric", #REP
+                         "numeric", #BLOCK
+                         "numeric", #ROW
+                         "text", #GEN
+                         "numeric", #GERM
+                         "numeric", #DtFF
+                         "numeric", #GDD_FF
+                         "numeric", #DtF
+                         "numeric", #GDD_F
+                         "numeric", #DtFP
+                         "numeric", #GDD_FP
+                         "numeric", #DtP
+                         "numeric", #GDD_P
+                         "numeric", #DtM
+                         "numeric", #GDD_M
+                         "numeric", #rustadj
+                         "numeric", #asco_%
+                         "numeric", #asco_adj
+                         "numeric", #oidio_%
+                         "numeric", #Oidio_adj
+                         "numeric", #Biom_plant_g	
+                         "numeric", #yield_plant_g
+                         "numeric"  #yield_kgHa
+                       )) 
 ```
 
 ```{r}
 #Load as data frame:
-R18 <- as.data.frame(R18)
+R20 <- as.data.frame(R20)
 
-head(R18)
+head(R20)
 
 ```
 
 ```{r}
 ## Metan package allow to calculate BLUPs and others stability indexes and parameters. It also offers statistic help.
 gen_alpha <- 
-  gamem(R18, #data
+  gamem(R20, #data
         GEN, #genotype
         REP, #replicate
-        c("T_Rust", "Asco", "Oidio"), # diseases trait
+        c("GDD_DTFF", "GDD_DTF", "GDD_DTP", "GDD_DTM"), # fenology traits
         block = BLOCK) #block
 ```
 
@@ -180,17 +189,20 @@ get_model_data(gen_alpha)
 ```
 
 ```{r, fig.height= 10, fig.width= 8}
-##BLUP histogram for diseases in 2018 season:
-par(mfrow = c(3,2))
+##BLUP histogram for phenology in 2018 season:
+par(mfrow = c(4,2))
 
-hist(gen_alpha$T_Rust$BLUPgen$Predicted , main = "BLUP distribution of Rust %")
-hist(R18$T_Rust,  main = "RawData distribution of Rust %")
+hist(gen_alpha$GDD_DTFF$BLUPgen$Predicted , main = "BLUP distribution of GDD_DTFF")
+hist(R20$GDD_DTFF,  main = "RawData distribution of GDD_DTFF")
 
-hist(gen_alpha$Asco$BLUPgen$Predicted , main = "BLUP distribution of Ascochyta %")
-hist(R18$Asco,  main = "RawData distribution of Ascochyta %")
+hist(gen_alpha$GDD_DTF$BLUPgen$Predicted , main = "BLUP distribution of GDD_DTF")
+hist(R20$GDD_DTF,  main = "RawData distribution of GDD_DTF")
 
-hist(gen_alpha$Oidio$BLUPgen$Predicted , main = "BLUP distribution of Oidio %")
-hist(R18$Oidio,  main = "RawData distribution of Oidio %")
+hist(gen_alpha$GDD_DTP$BLUPgen$Predicted , main = "BLUP distribution of GDD_DTP")
+hist(R20$GDD_DTP,  main = "RawData distribution of GDD_DTP")
+
+hist(gen_alpha$GDD_DTM$BLUPgen$Predicted , main = "BLUP distribution of GDD_DTM")
+hist(R20$GDD_DTM,  main = "RawData distribution of GDD_DTM")
 ```
 
 ### Task 3. Create useful functions to recycle the console
@@ -205,59 +217,59 @@ First, create the matrix of $CF_{B,R}$ for every rep:
 
 ```{r, include = F}
 #Create vectors with the block/row average for every REP:
-GERM_B1 <- R18 %>%
+GERM_B1 <- R20 %>%
   group_by(BLOCK) %>%
   filter(REP == "1") %>%
   filter(GEN == "Control") %>%
-  summarise(T_Germ = mean(T_Germ)) %>%
+  summarise(Oidio = mean(Oidio)) %>%
   arrange(BLOCK)
 
-GERM_B2 <- R18 %>%
+GERM_B2 <- R20 %>%
   group_by(BLOCK) %>%
   filter(REP == "2") %>%
   filter(GEN == "Control") %>%
-  summarise(T_Germ = mean(T_Germ)) %>%
+  summarise(Oidio = mean(Oidio)) %>%
   arrange(BLOCK)
 
-GERM_B3 <- R18 %>%
+GERM_B3 <- R20 %>%
   group_by(BLOCK) %>%
   filter(REP == "3") %>%
   filter(GEN == "Control") %>%
-  summarise(T_Germ = mean(T_Germ)) %>%
+  summarise(Oidio = mean(Oidio)) %>%
   arrange(BLOCK)
 
-GERM_R1 <- R18 %>%
+GERM_R1 <- R20 %>%
   group_by(ROW) %>%
   filter(REP == "1") %>%
   filter(GEN == "Control") %>%
-  summarise(T_Germ = mean(T_Germ)) %>%
+  summarise(Oidio = mean(Oidio)) %>%
   arrange(ROW)
 
-GERM_R2 <- R18 %>%
+GERM_R2 <- R20 %>%
   group_by(ROW) %>%
   filter(REP == "2") %>%
   filter(GEN == "Control") %>%
-  summarise(T_Germ = mean(T_Germ)) %>%
+  summarise(Oidio = mean(Oidio)) %>%
   arrange(ROW)
 
-GERM_R3 <- R18 %>%
+GERM_R3 <- R20 %>%
   group_by(ROW) %>%
   filter(REP == "3") %>%
   filter(GEN == "Control") %>%
-  summarise(T_Germ = mean(T_Germ)) %>%
+  summarise(Oidio = mean(Oidio)) %>%
   arrange(ROW)
 ```
 
 ```{r}
 # Create a 19 x 19 matrix (of 19 rows and 19 blocks)
   #vector for every rep:
-RowsR1 <- c(GERM_R1$T_Germ)
-BlocksR1 <- c(GERM_B1$T_Germ)
+RowsR1 <- c(GERM_R1$Oidio)
+BlocksR1 <- c(GERM_B1$Oidio)
 
-my_matR1 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+my_matR1 <- matrix(nrow=max(R20$ROW), ncol=max(R20$BLOCK))
 for (i in 1:length(RowsR1)){
   for (j in 1:length(BlocksR1)){
-    my_matR1[i,j]<-(mean(R18$T_Germ))/((RowsR1[i]+BlocksR1[j])/2)       
+    my_matR1[i,j]<-(mean(R20$Oidio))/((RowsR1[i]+BlocksR1[j])/2)       
   }
 }
 
@@ -268,24 +280,24 @@ format(round(my_matR1, 2), nsmall = 2) #show with two decimals
 ```{r, include=FALSE}
 #The matrixes for Rep 2 and Rep 3
 
-RowsR2 <- c(GERM_R2$T_Germ)
-BlocksR2 <- c(GERM_B2$T_Germ)
+RowsR2 <- c(GERM_R2$Oidio)
+BlocksR2 <- c(GERM_B2$Oidio)
 
-RowsR3 <- c(GERM_R3$T_Germ)
-BlocksR3 <- c(GERM_B3$T_Germ)
+RowsR3 <- c(GERM_R3$Oidio)
+BlocksR3 <- c(GERM_B3$Oidio)
 
-my_matR2 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+my_matR2 <- matrix(nrow=max(R20$ROW), ncol=max(R20$BLOCK))
 for (i in 1:length(RowsR2)){
   for (j in 1:length(BlocksR2)){
-    my_matR2[i,j]<-(mean(R18$T_Germ))/((RowsR2[i]+BlocksR2[j])/2)       
+    my_matR2[i,j]<-(mean(R20$Oidio))/((RowsR2[i]+BlocksR2[j])/2)       
   }
 }
 format(round(my_matR2, 2), nsmall = 2) #show with two decimals
 
-my_matR3 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+my_matR3 <- matrix(nrow=max(R20$ROW), ncol=max(R20$BLOCK))
 for (i in 1:length(RowsR3)){
   for (j in 1:length(BlocksR3)){
-    my_matR3[i,j]<-(mean(R18$T_Germ))/((RowsR3[i]+BlocksR3[j])/2)       
+    my_matR3[i,j]<-(mean(R20$Oidio))/((RowsR3[i]+BlocksR3[j])/2)       
   }
 }
 format(round(my_matR3, 2), nsmall = 2) #show with two decimals
@@ -305,12 +317,14 @@ CF3 <- as.tibble(unlist(c(my_matR3)))
 The next step is to bind the three reps in one new column with the Correction Factor of a determined trait and multiply the specific CF by their observation value.
 
 ```{r}
-FC_GERM <- rbind(CF1, CF2, CF3)
+FC_BIOM <- rbind(CF1, CF2, CF3)
 
-R18_t <- R18 %>%
- mutate(GERM_t = as.numeric(unlist(T_Germ * FC_GERM)))
+R20_t <- R20 %>%
+ mutate(OidioT = as.numeric(unlist(Oidio * FC_BIOM$value)))
 
-head(R18_t)
+head(R20_t)
+
+
 ```
 
 ```{r, warning=FALSE}
@@ -341,7 +355,7 @@ F1 <- function(df, trait) {
   return(p)
   }
   
-F2 <- function(df, trait, mean_trait) {
+F2 <- function(df, trait) {
   #Create the vectors for the BLOCK/ROW average by REP
   trait_B1 <- df %>%
     group_by(BLOCK) %>%
@@ -395,6 +409,8 @@ F2 <- function(df, trait, mean_trait) {
   RowsR3 <- c(trait_R3$trait)
   BlocksR3 <- c(trait_B3$trait)
   
+  mean_trait <- mean(df[,trait])
+  
     my_matR1 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
   for (i in 1:length(RowsR1)){
     for (j in 1:length(BlocksR1)){
@@ -402,17 +418,17 @@ F2 <- function(df, trait, mean_trait) {
     }
   }
   
-    my_matR2 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+    my_matR2 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
   for (i in 1:length(RowsR2)){
     for (j in 1:length(BlocksR2)){
-      my_matR2[i,j]<-(mean(R18$T_Germ))/((RowsR2[i]+BlocksR2[j])/2)       
+      my_matR2[i,j]<-mean_trait/((RowsR2[i]+BlocksR2[j])/2)       
     }
   }
     
-    my_matR3 <- matrix(nrow=max(R18$ROW), ncol=max(R18$BLOCK))
+    my_matR3 <- matrix(nrow=max(df$ROW), ncol=max(df$BLOCK))
   for (i in 1:length(RowsR3)){
     for (j in 1:length(BlocksR3)){
-     my_matR3[i,j]<-(mean(R18$T_Germ))/((RowsR3[i]+BlocksR3[j])/2)       
+     my_matR3[i,j]<-mean_trait/((RowsR3[i]+BlocksR3[j])/2)       
     }
   }
   
@@ -420,61 +436,37 @@ F2 <- function(df, trait, mean_trait) {
   CF1<- as.tibble(unlist(c(my_matR1)))
   CF2 <- as.tibble(unlist(c(my_matR2)))
   CF3 <- as.tibble(unlist(c(my_matR3)))
-  FC_trait <- rbind(CF1, CF2, CF3)
+  FC_trait <- rbind(c(CF1, CF2, CF3))
 
   #Add to the data frame the correction factor column and multiply by its trait, creating a new column
   
-  df <- df %>%
- mutate(trait = as.numeric(unlist({{trait}} * FC_trait)))
   
-  return(df)  
+  #df <- df %>% mutate(trait_t = as.numeric(unlist({{trait}} * FC_trait)))
+  dfnew <- df %>% mutate(trait_t = as.numeric(unlist(df[,trait])) * as.numeric(FC_BIOM$value))
+  # mutate(yield_plant_gT = as.numeric(unlist(yield_plant_g * FC_BIOM$value)))
+  
+  return(dfnew)  
     
 }
 ```
 
 ```{r}
-F1(R18, T_Germ)
+F1(R20, Biom_plant_g)
 ```
 
-```{r}
+```{r, warning=FALSE}
 #Data frame with the new column "trait" normalized with the controls for that trait
-newdf <- F2(R18, T_Germ, mean_trait = mean(R18$T_Germ))
+newdf <- F2(df = R20, trait = "Biom_plant_g")
 head(newdf)
 ```
 
 ```{r}
 #Data frame with the new column "trait" normalized with the controls for that trait
-newdf2 <- F2(R18, T_Rust, mean_trait = mean(R18$T_Rust))
+newdf2 <- F2(R20, trait = "Oidio")
 head(newdf2)
 ```
 
-**doubts:**
-
--   If there is a NaN in the raw data set, the total output column is NAN.. how can I solve that?
-
-<!-- -->
-
--   The new output column name is "trait", but that name depends of the original trait selected... how can I solve that?
-
--   
-
-```{r, include=FALSE}
-df1<- F1(R18, T_Germ)
-```
-
-```{r, include=FALSE}
-
-##Create a function that give you the average of a trait (selected as a vector) and select the controls inside de df if you select it.
-
-fn.media.dataframe <- function(df, trait) {
-  
-  print("The mean of the vector selected in the DataFrame is")
-  print(paste("Mean: ",round(mean({{trait}}, ),2)))
-  
-}
-
-fn.media.dataframe(R18, R18$T_Germ)
-```
+With the new function created is it possible to normalize the data of all the seasons with their controls. The next step is to explore the data, make some correlations and visualize them.
 
 ### Task 4. Start a report
 
