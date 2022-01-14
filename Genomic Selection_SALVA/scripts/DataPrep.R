@@ -3,10 +3,14 @@
 ###                         DATA PREPARATION                             ###
 ###                                                                      ###
 ############################################################################
-
+  library(GAPIT3)
+  library(openxlsx)
 # 1) Read it in R as text data frame (or tibble)
-
-  myG <- read.table(file="GenPea_SilDArT_sort_def.hmp.txt",sep= "\t",head=FALSE)
+  #GAPIT:
+  myG <- read.table(file="GenPea_SilDArT_sort_def.hmp.txt",sep= "\t",head=F)
+  #TASSEL:
+  DarT <- as.data.frame(read.table("Markers.txt",head=T))
+  
 
 # 2) Make sure NAs are properly read it.
   
@@ -16,7 +20,7 @@
   
   #I've donde this with a GAPPIT function and save it as a .txt, now the head is the "rs#" and the first column "taxa
   # "rs#" contains the marker identifier
-
+  myG <- read.table(file="GenPea_SilDArT_sort_def.hmp.txt",sep= "\t",head=FALSE)
     myGAPIT <- GAPIT(G=myG, output.numerical=TRUE)
     myGD= myGAPIT$GD
     myGM= myGAPIT$GM
@@ -27,28 +31,16 @@
   #By TASSEL. I've convert the hapmap format (C,A, N) to numerical format (AA = 1, aa = 0, aA = 0,5 = NA),
     # TASSEL didn't recognice het. = N as 0.5, instead is Na value. But SilicoDarT markers doesn't contain Na's
     # So here I import the TASSEL markers and convert it to rrBLUP format (coded as {-1,0,1} = {aa,Aa,AA})
-    
-    DarT <- read.table("Markers.txt",sep= "\t",head=F)
-    DarT <- data.frame(DarT)
+
       #Substitute 0 to -1 (homozygous minor aa) and  NA to 0 (heterozigosis aA or Aa)
     DarT[DarT == 0] <- -1
     DarT[is.na(DarT)] <- 0
-    DarT <-t(DarT)
     write.table(x = DarT, file = "Dart.txt" ,sep= "\t")
     
-    DarT1 <- read.xlsx("DarT.xlsx", sep= "\t" ,colNames = T)
-    DarT1 %>%
-      count()
+    DarT1 <- as.matrix(read.table("Dart.txt", sep= "\t" ,head = T))
+    DarT1<-DarT1[,-1]
+    write.table(DarT1, "DarTrrBLUP.txt", sep = "\t")
     
-    #set first row as header:
-    install.packages("janitor")
-    library(janitor)
-    DarT <- row_to_names(dat = DarT, row_number = 1)
-     #Count presence/absence (1/-1) of a marker ()
-    DarT <- DarT %>%
-      arrange(X1)
-    
-
 # 4) Filter data:
     #Missing per marker and missing per sample
       
@@ -62,8 +54,9 @@
     dat
 
     DarT <- t(DarT)
-      DarT %>%
-        count(X.Marker.)
+
   
     #Heterozygosity (remove > 10%)
+      
+      dim(DarT)
   
