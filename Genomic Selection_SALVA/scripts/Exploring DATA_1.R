@@ -708,3 +708,10 @@ ggplot(data = BLUPs_anova, aes(x = Species, y = BLUP)) +
 #selected genotypes parameters (macro and microscopical)
 colonies <- read.xlsx("U_pisi colonies.xlsx", sheet = "DEFINITIVO")
 corr_plot(colonies)
+
+
+#Efecto precocidad en roya:
+BLUP <- read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, sheet = "BLUP_f+cc", )
+head(BLUP)
+
+corr_plot(BLUP, c("GDD_F", "GDD_P", "Rust", "Biomass","Yield", "AUDPC", "LP50", "IF", "IT", "DS"))
