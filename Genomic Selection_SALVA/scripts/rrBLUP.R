@@ -17,7 +17,7 @@
       dim(Pheno)  
   
 # 2) Impute missing markers using A.mat() en DArT:
-      impute = A.mat(DArT,max.missing = 0.5,impute.method = "mean", return.imputed = T)
+      impute = A.mat(dat_M,max.missing = 0.5,impute.method = "mean", return.imputed = T)
       Markers_impute = impute$imputed
       
       Markers_impute <- t(Markers_impute)
@@ -492,4 +492,55 @@ mean(YLD_accuracy_m)
 df.accuracies.m <- data.frame(FLR_accuracy_m,POD_accuracy_m,RUST_accuracy_m,BMS_accuracy_m, YLD_accuracy_m)
 names(df.accuracies.m) <- c("FLR.m", "POD.m", "RUST.m", "BMS.m", "YLD.m")
 write.xlsx(df.accuracies.m, "df.acuraciesm.xlsx", sep = "/t")
-#Volvemos a plotear:
+
+
+#R code for implementing three default kernels in rrBLUP (linear, Gaussian, and Exponential)
+
+library(rrBLUP) #load rrBLUP
+library(BGLR) #load BLR
+X=Markers_impute
+dim(X)
+X <- 2*X-1 #recode genotypes
+X=scale(X)
+t=2
+Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_GS_rust"))
+head(Pheno_rust)
+y <-Pheno_rust[,t] #Rust from R19
+yy=y
+MSE=function(yobserved,ypredicted){
+  MSE=mean((yobserved-ypredicted)^2)
+}
+n_records=nrow(X)
+n_folds=10
+set.seed(10)
+sets <- findInterval(cut(sample(1:n_records, n_records),
+                         breaks=n_folds), 1:n_records)
+results=data.frame()
+for (i in 1:n_folds){
+  # i=1
+  trn <- which(sets!=i)
+  tst <- which(sets==i)
+  ans.RR<-kinship.BLUP(y=y[trn],
+                       G.train=X[trn,],G.pred=X[tst,])
+  #accuracy with RR
+  Cor_RR=cor(ans.RR$g.pred,yy[tst])
+  MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+  ans.GAUSS<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="GAUSS")
+  #accuracy with GAUSS
+  Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+  MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+  ans.EXP<-kinship.BLUP(y=y[trn],
+                        G.train=X[trn,],G.pred=X[tst,],
+                        K.method="EXP")
+  #accuracy with EXponential
+  Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+  MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+  results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                   MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                   Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+}
+results
+boxplot(results$Cor_RR, results$Cor_GAUSS, results$Cor_EXP)
+write.xlsx(results,file = "Kernel_Mixed_Example_Table_8.4.xlsx", sep = "/t")

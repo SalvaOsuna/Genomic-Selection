@@ -90,7 +90,7 @@
     }
     mean(R19_accuracy)
     
-    #R20:
+    #R20: 
     traits = 1
     cycles = 500
     R20_accuracy = matrix(nrow = cycles, ncol = traits)
@@ -240,4 +240,77 @@
             names = c("R18", "R19", "R20", "AUDPC", "LP50", "IF", "IT", "DS"),
             main = "Accuracies by rust trait with 500 itinerations"
             )
+    #los datos de campo no salen demasiado bien, así que voy a probar haciendo arc.sin transform. sobre los blups a ver:
+    #R18_t:
+    traits = 1
+    cycles = 500
+    R18_t_accuracy = matrix(nrow = cycles, ncol = traits)
+    for (r in 1:cycles) {
+      train = as.matrix(sample(1:320, 224))
+      test = setdiff(1:320, train)
+      Pheno_train = Pheno_rust[train, ]
+      m_train = DArT_rust_SVDI[train, ]
+      Pheno_valid = Pheno_rust[test, ]
+      m_valid = DArT_rust_SVDI[test, ]
+      
+      R18_t = (Pheno_train[, 9])
+      R18_t_answer <- mixed.solve(R18_t, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+      u = R18_t_answer$u
+      e = as.matrix(u)
+      pred_R18_t_valid = m_valid %*% e
+      pred_R18_t = pred_R18_t_valid[, 1] + R18_t_answer$beta  
+      pred_R18_t
+      R18_t_valid = Pheno_valid[, 9]
+      R18_t_accuracy[r, 1] <-  cor(pred_R18_t_valid, R18_t_valid, use = "complete")
+    }
+    mean(R18_t_accuracy)
+    
+    #R19_t:
+    traits = 1
+    cycles = 500
+    R19_t_accuracy = matrix(nrow = cycles, ncol = traits)
+    for (r in 1:cycles) {
+      train = as.matrix(sample(1:320, 224))
+      test = setdiff(1:320, train)
+      Pheno_train = Pheno_rust[train, ]
+      m_train = DArT_rust_SVDI[train, ]
+      Pheno_valid = Pheno_rust[test, ]
+      m_valid = DArT_rust_SVDI[test, ]
+      
+      R19_t = (Pheno_train[, 10])
+      R19_t_answer <- mixed.solve(R19_t, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+      u = R19_t_answer$u
+      e = as.matrix(u)
+      pred_R19_t_valid = m_valid %*% e
+      pred_R19_t = pred_R19_t_valid[, 1] + R19_t_answer$beta  
+      pred_R19_t
+      R19_t_valid = Pheno_valid[, 10]
+      R19_t_accuracy[r, 1] <-  cor(pred_R19_t_valid, R19_t_valid, use = "complete")
+    }
+    mean(R19_t_accuracy)
+    
+    #R20_t: 
+    traits = 1
+    cycles = 500
+    R20_t_accuracy = matrix(nrow = cycles, ncol = traits)
+    for (r in 1:cycles) {
+      train = as.matrix(sample(1:320, 224))
+      test = setdiff(1:320, train)
+      Pheno_train = Pheno_rust[train, ]
+      m_train = DArT_rust_SVDI[train, ]
+      Pheno_valid = Pheno_rust[test, ]
+      m_valid = DArT_rust_SVDI[test, ]
+      
+      R20_t = (Pheno_train[, 11])
+      R20_t_answer <- mixed.solve(R20_t, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+      u = R20_t_answer$u
+      e = as.matrix(u)
+      pred_R20_t_valid = m_valid %*% e
+      pred_R20_t = pred_R20_t_valid[, 1] + R20_t_answer$beta  
+      pred_R20_t
+      R20_t_valid = Pheno_valid[, 11]
+      R20_t_accuracy[r, 1] <-  cor(pred_R20_t_valid, R20_t_valid, use = "complete")
+    }
+    mean(R20_t_accuracy)
+#Try cross validation:
     

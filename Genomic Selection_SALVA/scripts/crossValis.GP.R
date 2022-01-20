@@ -3,9 +3,9 @@ library(optparse)
 
 
 option_list = list(
-  make_option(c("-G", "--genoFile"), type="character", default=NULL,
+  make_option(c("DArT.txt", "--genoFile"), type="character", default=NULL,
               help="genotype file", metavar="character"),
-  make_option(c("-P", "--phenoFile"), type="character", default=NULL,
+  make_option(c("BLUP_field.xlsx", "--phenoFile"), type="character", default=NULL,
               help="phenotype file", metavar="character"),
   make_option(c("-o", "--out"), type="character", default="OUT",
               help="output file name [default= %default]", metavar="character"),
@@ -40,7 +40,7 @@ trainset = N*(opt$trainSize/100)
 testset = N-trainset
 
 #read in pheno data
-pheno = as.matrix(read.table(opt$phenoFile, header=TRUE))
+pheno = as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_GS_rust"))
 
 #establish a matrix to hold the results of each iteration
 res<-matrix(NA,opt$iterations,2)
@@ -63,9 +63,9 @@ for (iter in 1:opt$iterations)
   pheno_train = pheno[train,]
   pheno_test = pheno[test,]
 
-###############################################################################
+#################################
 ## Using rrBLUP for prediction ##
-###############################################################################
+#################################
   #generate marker effects
   mxslv = mixed.solve(pheno_train, Z=geno_train, K=NULL, SE=FALSE, return.Hinv=FALSE)
   TPr = mxslv$u
