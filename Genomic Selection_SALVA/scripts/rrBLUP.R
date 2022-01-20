@@ -359,9 +359,17 @@ boxplot(df.accuracies)
 write.xlsx(df.accuracies, "df.acuracies.xlsx", sep = "/t")
 write.xlsx(df.accuracies.svd, "df.acuraciessvd.xlsx", sep = "/t")
 df.accuracies <- read.xlsx("df.acuraciessvd.xlsx", colNames = T)
+df.accuracies <- df.accuracies %>%
+   rename("Impute_Condition" = "Impute Condition")
 
 ggplot(df.accuracies, aes(x = Trait, y = Accuracy))+
-  geom_boxplot(aes(fill = Condition))
+  geom_boxplot(aes(fill = Impute_Condition)) +
+  coord_flip() +
+  labs(title = "Accuracy by Impute Condition", 
+       subtitle = "With 500 itinerances in five traits",
+       caption = "SVD Impute reveals better results in Yield") +
+  scale_fill_discrete(labels = c("MNI", "N = het.", "SVDI")) +
+  theme_bw()
 
 
 #Voy a probar sustituyendo los NA ahora con la media (el imput que me deja rrBLUP) para cada trait con itinerancia de 500
