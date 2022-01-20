@@ -495,17 +495,20 @@ write.xlsx(df.accuracies.m, "df.acuraciesm.xlsx", sep = "/t")
 
 
 #R code for implementing three default kernels in rrBLUP (linear, Gaussian, and Exponential)
-
 library(rrBLUP) #load rrBLUP
 library(BGLR) #load BLR
+    #Voy a hacerlo con todos los traits de roya que tengo, así pued comprar G-Blup con SNP-blup
 X=Markers_impute
 dim(X)
 X <- 2*X-1 #recode genotypes
 X=scale(X)
-t=2
 Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_GS_rust"))
 head(Pheno_rust)
-y <-Pheno_rust[,t] #Rust from R19
+
+#R18 
+{
+t=1
+y <-Pheno_rust[,t] #Rust from R18
 yy=y
 MSE=function(yobserved,ypredicted){
   MSE=mean((yobserved-ypredicted)^2)
@@ -542,5 +545,299 @@ for (i in 1:n_folds){
                                    Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
 }
 results
-boxplot(results$Cor_RR, results$Cor_GAUSS, results$Cor_EXP)
-write.xlsx(results,file = "Kernel_Mixed_Example_Table_8.4.xlsx", sep = "/t")
+write.xlsx(results,file = "Kernel_Mixed_Example_R18.xlsx", sep = "/t")
+}
+#R19
+{
+  t=2
+  y <-Pheno_rust[,t] #Rust from R19
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_R19.xlsx", sep = "/t")
+}
+#R20
+{
+  t=3
+  y <-Pheno_rust[,t] #Rust from R20
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_R20.xlsx", sep = "/t")
+}
+#AUDPC
+{
+  t=4
+  y <-Pheno_rust[,t] #Rust from AUDPC
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_AUDPC.xlsx", sep = "/t")
+}
+#LP50
+{
+  t=5
+  y <-Pheno_rust[,t] #Rust from LP50
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_LP50.xlsx", sep = "/t")
+}
+#IF
+{
+  t=6
+  y <-Pheno_rust[,t] #Rust from IF
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_IF.xlsx", sep = "/t")
+}
+#IT
+{
+  t=7
+  y <-Pheno_rust[,t] #Rust from IT
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_IT.xlsx", sep = "/t")
+}
+#DS
+{
+  t=8
+  y <-Pheno_rust[,t] #Rust from DS
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds){
+    # i=1
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    ans.RR<-kinship.BLUP(y=y[trn],
+                         G.train=X[trn,],G.pred=X[tst,])
+    #accuracy with RR
+    Cor_RR=cor(ans.RR$g.pred,yy[tst])
+    MSE_RR=MSE(ans.RR$g.pred,yy[tst])
+    ans.GAUSS<-kinship.BLUP(y=y[trn],
+                            G.train=X[trn,],G.pred=X[tst,],
+                            K.method="GAUSS")
+    #accuracy with GAUSS
+    Cor_GAUSS=cor(ans.GAUSS$g.pred,yy[tst])
+    MSE_GAUSS=MSE(ans.GAUSS$g.pred,yy[tst])
+    ans.EXP<-kinship.BLUP(y=y[trn],
+                          G.train=X[trn,],G.pred=X[tst,],
+                          K.method="EXP")
+    #accuracy with EXponential
+    Cor_EXP=cor(ans.EXP$g.pred,yy[tst])
+    MSE_EXP=MSE(ans.EXP$g.pred,yy[tst])
+    results=rbind(results,data.frame(Fold=i, MSE_RR=MSE_RR,
+                                     MSE_GAUSS=MSE_GAUSS, MSE_EXP=MSE_EXP,Cor_RR=Cor_RR,
+                                     Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
+  }
+  results
+  write.xlsx(results,file = "Kernel_Mixed_Example_DS.xlsx", sep = "/t")
+}
