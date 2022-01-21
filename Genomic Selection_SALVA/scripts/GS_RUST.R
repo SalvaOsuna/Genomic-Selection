@@ -5,8 +5,9 @@
 ############################################
 
 # 1) Load Genotypic data, DArT markers:
-    DArT <- as.matrix(read.table("DArT.txt", header = T))
+    DArT <- as.matrix(read.table("data/DArT.txt", header = T))
     DArT_rust <- DArT[-c(288, 294, 300, 320, 325), ] #Estas entradas no están evaluadas en CC así que las quito
+    ##rrBLUP necesita la matriz en formato {-1, 0, 1} así que cambio los 0 por -1:
 
 # 2) Make sure NAs are properly read it.
     # Calculate the % of missing value within the matrix n x m:

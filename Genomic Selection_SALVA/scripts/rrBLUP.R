@@ -3,8 +3,8 @@
   library(rrBLUP)
 
   #Input Genotype. Markers in a matrix format. rows = GEN; column = marker
-  Markers <- as.matrix(read.table("DarTrrBLUP.txt", sep= "\t" ,head = T)) #here the original data N = 0 as het. (No NA's corrected)
-  DArT_SVD <- as.matrix(read.table("DArT_noNA_SVDmethod.txt", sep= "\t")) #Load data with NA values corrected trough SVDImput method
+  Markers <- as.matrix(read.table("data/DarTrrBLUP.txt", sep= "\t" ,head = T)) #here the original data N = 0 as het. (No NA's corrected)
+  DArT_SVD <- as.matrix(read.table("data/DArT_noNA_SVDmethod.txt", sep= "\t")) #Load data with NA values corrected trough SVDImput method
   DArT_SVD <- t(DArT_SVD)
 
   #Input phenotype. Traits in a matrix format. rows = GEN; column = trait
@@ -496,13 +496,13 @@ write.xlsx(df.accuracies.m, "df.acuraciesm.xlsx", sep = "/t")
 
 #R code for implementing three default kernels in rrBLUP (linear, Gaussian, and Exponential)
 library(rrBLUP) #load rrBLUP
-library(BGLR) #load BLR
-    #Voy a hacerlo con todos los traits de roya que tengo, así pued comprar G-Blup con SNP-blup
-X=Markers_impute
+library(BGLR) #load BGLR
+    #Voy a hacerlo con todos los traits de roya que tengo, así puedo comparar G-Blup con SNP-blup
+X= dat_SVD
 dim(X)
-X <- 2*X-1 #recode genotypes
+#X <- 2*X-1 #recode genotypes
 X=scale(X)
-Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_GS_rust"))
+Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "data/BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_GS_rust"))
 head(Pheno_rust)
 
 #R18 
@@ -587,7 +587,7 @@ write.xlsx(results,file = "Kernel_Mixed_Example_R18.xlsx", sep = "/t")
                                      Cor_GAUSS=Cor_GAUSS, Cor_EXP=Cor_EXP))
   }
   results
-  write.xlsx(results,file = "Kernel_Mixed_Example_R19.xlsx", sep = "/t")
+  write.xlsx(results,file = "data/Kernel_Mixed_Example_R19.xlsx", sep = "/t")
 }
 #R20
 {
@@ -841,3 +841,40 @@ write.xlsx(results,file = "Kernel_Mixed_Example_R18.xlsx", sep = "/t")
   results
   write.xlsx(results,file = "Kernel_Mixed_Example_DS.xlsx", sep = "/t")
 }
+
+  #visualize results:
+  GBLUP_bp <- read.xlsx("results/Kernel_Mixed_GBLUP.xlsx", sheet = "bp", colNames = T)
+  library(tidyverse)  
+  ggplot(GBLUP_bp, aes(x = Trait, y = PC)) +
+    geom_boxplot(aes(fill = Model)) +
+    coord_flip() +
+    theme_classic() +
+    labs(fill = "Kernel Model",
+         title = "Genomic BLUP accuracies by 10 k-fold cross-validation",
+         subtitle = "Accuracy by Rust traits",
+         caption = "R19, DS and AUDPC are goods")
+  
+
+  GBLUP_bp$Fold = as.character(GBLUP_bp$Fold)  
+  ggplot(GBLUP_bp, aes( x = Fold, y = PC))+
+    geom_boxplot(aes(fill = Model))+
+    coord_flip() +
+    theme_classic() +
+    labs(fill = "Kernel Model",
+         title = "Accuracy in G-BLUP model by Folds",
+         subtitle = "10 k-folds cross-validation",
+         caption = "Fold 4 always shows worst results, why?")
+  
+# SNP BLUP vs G BLUP in rust traits:
+  BLUP_bp <- read.xlsx("results/RR_SNP&G_BLUP_rust_traits.xlsx", sheet = "Sheet 1", colNames = T)
+  ggplot(BLUP_bp, aes( x = Trait, y = Accuracy))+
+    geom_boxplot(aes(fill = Model))+
+    coord_flip() +
+    theme_classic() +
+    labs(fill = "BLUP Model",
+         title = "SNP-BLUP vs G-BLUP accuracies in Rust traits",
+         subtitle = "SNP with 500 itinerancies, G-BLUP 10 k-folds",
+         caption = "G-BLUP kinship calculated with Linear Kernel")
+  
+
+  

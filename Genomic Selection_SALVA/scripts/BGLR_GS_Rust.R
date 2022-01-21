@@ -14,10 +14,10 @@ dat_F = as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = 
 head(dat_F)
 
 #Marker data
-dat_M = as.matrix(read.table("DArT.txt", header = T))
+dat_M = as.matrix(read.table("data/DArT_rrBLUP_withNA.txt", header = T))
 dat_M <- dat_M[-c(288, 294, 300, 320, 325), ] #Estas entradas no están evaluadas en CC así que las quito
 
-dat_S <-
+dat_SVD <-
   impute.svd(dat_M, # data matrix with missing values
              k = 4, #the rank of the SVD approximation, I use k = 4 following Nazzicari, N. 2016
              #tol = max(24279, 325) * 1e-10, #the convergence tolerance for the EM algorithm
