@@ -876,5 +876,321 @@ write.xlsx(results,file = "Kernel_Mixed_Example_R18.xlsx", sep = "/t")
          subtitle = "SNP with 500 itinerancies, G-BLUP 10 k-folds",
          caption = "G-BLUP kinship calculated with Linear Kernel")
   
-
+#He hecho SNP-blup con 500 itinerancias y G BLUP con cross-validation. Voy a probar SNP-BLUP con cross validation:
+  {
+  #R18:
+  X= DArT_rust_SVDI
+  t = 1
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_R18.xlsx", sep = "/t")
+  
+  #R19:
+  X= DArT_rust_SVDI
+  t = 2
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_R19.xlsx", sep = "/t")
+  
+  #R20:
+  X= DArT_rust_SVDI
+  t = 3
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_R20.xlsx", sep = "/t")
+  
+  #AUDPC:
+  X= DArT_rust_SVDI
+  t = 4
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_AUDPC.xlsx", sep = "/t")
+  
+  #LP50:
+  X= DArT_rust_SVDI
+  t = 5
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_LP50.xlsx", sep = "/t")
+  
+  #IF:
+  X= DArT_rust_SVDI
+  t = 6
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_IF.xlsx", sep = "/t")
+  
+  #IT:
+  X= DArT_rust_SVDI
+  t = 7
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_IT.xlsx", sep = "/t")
+  
+  #DS:
+  X= DArT_rust_SVDI
+  t = 8
+  n_folds=10
+  y <-Pheno_rust[,t]
+  yy=y
+  MSE=function(yobserved,ypredicted){
+    MSE=mean((yobserved-ypredicted)^2)
+  }
+  n_records=nrow(X)
+  n_folds=10
+  set.seed(10)
+  sets <- findInterval(cut(sample(1:n_records, n_records),
+                           breaks=n_folds), 1:n_records)
+  results=data.frame()
+  for (i in 1:n_folds) {
+    
+    trn <- which(sets!=i)
+    tst <- which(sets==i)
+    
+    ans.R18 <- mixed.solve(y[trn], Z = X[trn,], K = NULL, SE = F, return.Hinv = F)
+    u = ans.R18$u
+    e = as.matrix(u)
+    pred_R18_valid = X[tst,] %*% e
+    pred_R18 = pred_R18_valid[, 1] + ans.R18$beta  
+    pred_R18
+    
+    Cor_RR=cor(pred_R18,yy[tst])
+    MSE_RR=MSE(pred_R18,yy[tst])
+    
+    results=rbind(results,data.frame(Fold=i,
+                                     Cor_RR=Cor_RR,
+                                     MSE_RR=MSE_RR
+    ))
+  }
+  results
+  write.xlsx(results,file = "results/Cross_DS.xlsx", sep = "/t")
+    }
+  
+#Vuelvo a representar las accuracy de las tres maneras:
+  BLUP_bp <- read.xlsx("results/RR_SNP&G_BLUP_rust_traits.xlsx", sheet = "Sheet 1", colNames = T)
+  ggplot(BLUP_bp, aes( x = Trait, y = Accuracy))+
+    geom_boxplot(aes(fill = Model))+
+    coord_flip() +
+    theme_classic() +
+    labs(fill = "BLUP Model",
+         title = "SNP-BLUP vs G-BLUP accuracies in Rust traits",
+         subtitle = "SNP-BLUP calculated by 500 it. and 10 k-folds",
+         caption = "G-BLUP kinship calculated with Linear Kernel and 10k-folds")
   
