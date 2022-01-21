@@ -8,7 +8,7 @@
   DArT_SVD <- t(DArT_SVD)
 
   #Input phenotype. Traits in a matrix format. rows = GEN; column = trait
-    Pheno <- as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_field"))
+    Pheno <- as.matrix(read.xlsx(xlsxFile = "data/BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_field"))
     head(Pheno)
   
       #Check Matrix dimensions
