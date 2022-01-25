@@ -8,10 +8,10 @@
   #I've open the DArT file (G,A and N) with TASSEL, I convert them into numerical and save the file as "Markers.txt":
   #where 1 = presence marker, 0 = absence markers, and NA = missing value. 
   DArT <- as.matrix(read.table("data/Markers.txt", header = T))
-  DArT2 <- DArT[,-1]
+  DArT2 <- DArT[,-1] #Rename the first column name
   rownames(DArT2) <- DArT[,1]
-  write.table(x = DArT2, file = "data/DArT.txt" ,sep= "\t")
-  DArT <- as.matrix(read.table("data/DArT.txt", header = T))
+  write.table(x = DArT2, file = "data/DArT.txt" ,sep= "\t") # save it and
+  DArT <- as.matrix(read.table("data/DArT.txt", header = T)) # load it again
   
 # 2) Make sure NAs are properly read it.
   # Calculate the % of missing value within the matrix n x m:
@@ -23,8 +23,8 @@
     # TASSEL didn't recognice het. = N as 0.5, instead is NA value. 
     # So here I import the TASSEL markers and convert it to rrBLUP format (coded as {-1,0,1} = {aa,Aa,AA})
     # Substitute 0 to -1 (homozygous minor aa)
-    DArT[DArT == 0] <- -1
-    write.table(x = DArT, file = "data/DArT_rrBLUP_withNA.txt" ,sep= "\t")
+    DArT[DArT == 0] <- -1 #change 0 to -1
+    write.table(x = DArT, file = "data/DArT_rrBLUP_withNA.txt" ,sep= "\t") #save it again
     
 # 4) Filter data:
   # Missing per marker and missing per sample
@@ -75,8 +75,9 @@
     
     write.table(DArT_noNA, "DArT_noNA_SVDmethod.txt",sep= "\t" )
     
-    
 
+    
+  
     
 
     
