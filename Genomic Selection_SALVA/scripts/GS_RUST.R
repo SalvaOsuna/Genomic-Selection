@@ -25,7 +25,7 @@
       )$x
 
 # 4) Input phenotype. Traits in a matrix format. rows = GEN; column = trait
-    Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "data/BLUP_field.xlsx", sep= "\t", rowNames = T, colNames = T, sheet = "BLUP_GS_rust"))
+    Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "data/BLUP_field.xlsx", sep= "\t", rowNames = F, colNames = T, sheet = "BLUP_GS_rust"))
     head(Pheno_rust)
     dim(Pheno_rust)
     dim(DArT_rust_SVDI)
@@ -491,7 +491,7 @@
                            saveExtraData = F,
                           type = 'BL',
                           stratified = T,
-                          reps = 50,
+                          reps = 15,
                           folds = 10)
     print(wb2)
     #re run the code with the new wb:
@@ -619,7 +619,7 @@
     write.xlsx(test1,"results/CCtrain_fieldtest.xlsx")
     test.rrblup <- test1 %>%
       group_by(dataset.train, dataset.test) %>%
-      summarise("meanPA" = abs(mean(pearson)))
+      summarise("meanPA" = (mean(pearson)))
     plotResult(test1, variable = "pearson")
     write.xlsx(test.rrblup, "results/CCtrain_fieldtest.xlsx")
     ggplot(test1, aes(x= dataset.train, y = abs(pearson)))+
@@ -700,3 +700,119 @@ plotResult(res.total2)
 res.total2 %>%
   group_by(dataset.train, dataset.test, regressor) %>%
   summarise("meanPA" = mean(pearson))
+print(wb2)
+
+res.DStoR19 <- GROAN.run(nds = nds.no_noise.DS, wb = wb2, nds.test = nds.no_noise.R19)
+write.xlsx(res.DStoR19, "results/res.DStoR19_BL.xlsx")
+plotResult(res.DStoR19)
+res.DStoR19 %>%
+  group_by(dataset.train, dataset.test, regressor) %>%
+  summarise("meanPA" = mean(pearson))
+
+#MULTI ENVIRONMENT 
+install.packages("BMTME")
+library(BMTME)
+#Function description:
+BME(
+  Y, #(matrix) Phenotypic response where each column is a different environment.
+  Z1, # (matrix) Matrix design for the genetic effects.
+  nIter = 1000L, #(integer) Number of iterations to fit the model.
+  burnIn = 300L, #(integer) Number of items to burn at the beginning of the model.
+  thin = 2L, #(integer) Number of items to thin the model.
+  bs = ceiling(dim(Z1)[2]/6), # (integer) Number of groups.
+  parallelCores = 1, #(integer) Number of cores to use.
+  digits = 4, #(integer) Number of digits of accuracy in the results.
+  progressBar = TRUE, #(Logical) Show the progress bar.
+  testingSet = NULL #(object or vector) Crossvalidation object or vector with the positions to use like testing in a cross-validation test.
+)
+    #EXAMPLE:
+    data("WheatMadaToy")
+    phenoMada <- (phenoMada[order(phenoMada$GID),])
+    dim(phenoMada)
+    #Matrix design
+    LG <- cholesky(genoMada)
+    dim(LG)
+    ZG1 <- model.matrix(~0 + as.factor(phenoMada$GID))
+    dim(ZG)
+    Z.G <- ZG %*% LG
+    dim(Z.G)
+    #Pheno data
+    Y <- as.matrix(phenoMada[, -c(1)])
+    dim(Y)
+    # Check fitting
+    fm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50)
+    
+    # Check predictive capacities of the model with CrossValidation object
+    pheno <- data.frame(GID = phenoMada[, 1], Env = '', Response = phenoMada[, 3])
+    CrossV <- CV.RandomPart(pheno, NPartitions = 4, PTesting = 0.2, set_seed = 123)
+    pm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50, testingSet = CrossV)
+    
+    #My DATA:
+    data("WheatMadaToy")
+    phenoMada <- (phenoMada[order(phenoMada$GID),])
+     multiENV_rust <- Pheno_rust_df %>%
+       select(GEN, R19, I_cc_FAI)
+     head(multiENV_rust)
+     write.xlsx(multiENV_rust, "multiENV_rust.xlsx")
+     multiENV_rust <- data.frame(read.xlsx("multiENV_rust.xlsx"))
+       
+    #Matrix design
+     geno <- as.matrix(read.xlsx(xlsxFile = "data/GenPea_SilDArT_Kinship_rust.xlsx", colNames = T, rowNames = T))
+    LG <- cholesky(geno)
+    dim(LG)
+    ZG <- model.matrix(~0 + as.factor(multiENV_rust$GEN))
+    dim(ZG)
+    Z.G <- ZG %*% LG
+    dim(Z.G)
+    #Pheno data
+    Y <- as.matrix(multiENV_rust[, -c(1)])
+    dim(Y)
+    # Check fitting
+    fm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50)
+    # Check predictive capacities of the model with CrossValidation object
+    pheno <- data.frame(GID = phenoMada[, 1], Env = '', Response = phenoMada[, 3])
+    CrossV <- CV.RandomPart(pheno, NPartitions = 4, PTesting = 0.2, set_seed = 123)
+    pm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50, testingSet = CrossV)
+    
+    #BMTSE
+      #my data:
+    multiENV_rust <- data.frame(read.xlsx("multiENV_rust.xlsx")) #pheno data
+    head(multiENV_rust)
+    
+    LG <- cholesky(geno)
+    ZG <- model.matrix(~0 + as.factor(multiENV_rust$GEN))
+    Z.G <- ZG %*% LG
+    Z.E <- model.matrix(~0 + as.factor(multiENV_rust$ENV))
+    dim(Z.E)
+    ZEG <- model.matrix(~0 + as.factor(multiENV_rust$GEN):as.factor(multiENV_rust$ENV))
+    G2 <- kronecker(diag(length(unique(multiENV_rust$ENV))), data.matrix(geno))
+    LG2 <- cholesky(G2)
+    Z.EG <- ZEG %*% LG2
+    Y <- as.matrix(multiENV_rust[, -c(1, 2)])
+    fm <- BMTME(Y = Y, X = Z.E, Z1 = Z.G, Z2 = Z.EG, nIter =15000, burnIn =10000, thin = 2,bs = 50)    
+
+      #example:
+    phenoMaizeToy<-(phenoMaizeToy[order(phenoMaizeToy$Env,phenoMaizeToy$Line),])
+    
+    rownames(phenoMaizeToy)=1:nrow(phenoMaizeToy)
+    
+    head(phenoMaizeToy)
+    LG <- cholesky(genoMaizeToy)
+    
+    ZG <- model.matrix(~0 + as.factor(phenoMaizeToy$Line))
+    
+    Z.G <- ZG %*% LG
+    
+    Z.E <- model.matrix(~0 + as.factor(phenoMaizeToy$Env))
+    
+    ZEG <- model.matrix(~0 + as.factor(phenoMaizeToy$Line):as.factor(phenoMaizeToy$Env))
+    
+    G2 <- kronecker(diag(length(unique(phenoMaizeToy$Env))), data.matrix(genoMaizeToy))
+    
+    LG2 <- cholesky(G2)
+    
+    Z.EG <- ZEG %*% LG2
+    
+    Y <- as.matrix(phenoMaizeToy[, -c(1, 2)])    
+    fm <- BMTME(Y = Y, X = Z.E, Z1 = Z.G, Z2 = Z.EG, nIter =15000, burnIn =10000, thin = 2,bs = 50)    
+    
