@@ -294,9 +294,9 @@ gen_alphaR20 <-
   gamem(RCC_nc, 
         GEN, 
         REP, 
-        resp = c("AUDPC_n", "DS_n", "IF_n", "IT_n"), 
-        BLOCK)
+        resp = c("AUDPC_n", "IF_n", "IT_n", "DS_n"))
     
+    get_model_data(gen_alphaRCC_noLP)
     gen_alphaRCC$AUDPC_T$BLUPgen
     BLUPcc <- get_model_data(gen_alphaRCC, what = "blupg")
     #write.xlsx(BLUPcc, file = "BLUPcc.xlsx", sep = "/t")
@@ -325,15 +325,16 @@ gen_alphaR20 <-
     FAI_noLP <- fai_blup(
       gen_alphaRCC_noLP,
       use_data = "blup",
-      DI = c("min","min", "min", "min"),
-      UI = c("max", "max", "max", "max"),
+      DI = c("max", "max", "max", "max"),
+      UI = c("min","min", "min", "min"),
       SI = 15,
       mineval = 1,
       verbose = TRUE)
 
       FAI_selection <- FAI$FAI
       FAI_selection1 <- FAI_noLP$FAI
-      #write.xlsx(FAI_selection1, "FAI_selection1.xlsx", sep = "/t")
+      FAI_noLP$FAI
+      #write.xlsx(FAI_noLP$FAI, "FAI_noLP$FAI.xlsx", sep = "/t")
 
     #MGIDI index selection:  
 

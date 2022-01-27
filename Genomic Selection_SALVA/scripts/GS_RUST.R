@@ -411,6 +411,7 @@
 #Ahora voy a hacer lo mismo con GROAN intentando 50 rep. de 10 fold cross-validation:
     library(GROAN)
   Pheno_rust_df <- as.data.frame(Pheno_rust)
+  head(Pheno_rust_df)
   #parece que hay que dejar los datos en formato {2, 1, 0}
   DArT <- as.matrix(read.table("data/DArT.txt", header = T))
   DArT[DArT == 1] <- 2 #change 1 to 2
@@ -497,6 +498,15 @@
     res.no_noise.FAI2.bl <- GROAN.run(nds.no_noise.FAI2, wb2)
     plotResult(res.no_noise.FAI2.bl)
     write.xlsx(res.total, "BL_vs_rrBLUP_IndexDS.xlsx")
+    res.total <- read.xlsx(xlsxFile = "/results/BL_vs_rrBLUP_IndexDS.xlsx")
+    res.total %>%
+      group_by(regressor) %>%
+      summarise("meanP" = median(pearson))
+    
+    plotResult(res.total, variable = "pearson") #No differences between regressor
+    ggbetweenstats(data = res.total, x = regressor, y = pearson, type = "p", pairwise.comparisons = T, 
+                   p.adjust.method = "holm", k = 4)
+    
     
     #putting the results best index together for further analysis
     res.total = rbind(res.no_noise.FAI2.bl, res.no_noise.FAI2)
@@ -515,5 +525,178 @@
     
     plotResult(res.total, plot.type = 'bar', variable = 'time')
 
-  
-  
+#train model with the index and test in field:
+    #R18
+    nds.no_noise.R18<- createNoisyDataset(
+      name = 'R18, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$R18)
+    #R19
+    nds.no_noise.R19<- createNoisyDataset(
+      name = 'R19, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$R19)
+    #R20
+    nds.no_noise.R20<- createNoisyDataset(
+      name = 'R20, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$R20)
+    #a new GROAN.Workbench with NO crossvalidation and only one repetition
+    wb3 = createWorkbench(
+      folds = 10, reps = 15, 
+      regressor.name = 'rrBLUP', regressor = phenoRegressor.rrBLUP)
+
+    #training on PEA.KI, testing on PEA.AI
+    res = GROAN.run(nds = nds.no_noise.FAI2, wb = wb3, nds.test = 
+                      list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    
+    print(res[,c('dataset.train', 'dataset.test', 'pearson')])
+    res.1 = GROAN.run(nds = nds.no_noise.FAI2, wb = wb3, nds.test = 
+      nds.no_noise.DS)
+    print(res.1[,c('dataset.train', 'dataset.test', 'pearson')])
+    res %>%
+      group_by(dataset.train, dataset.test) %>%
+      summarise("meanPA" = abs(mean(pearson)))
+
+  #Cual es el mejor predictor sobre DS2019 de los datos de cámara y campo?
+    res.2 = GROAN.run(nds = nds.no_noise.DS, wb = wb3, nds.test = nds.no_noise.R19)
+    print(res.2[,c('dataset.train', 'dataset.test', 'pearson')])
+    
+    res.3 = GROAN.run(nds = nds.no_noise.FAI2, wb = wb3, nds.test = nds.no_noise.R19)
+    print(res.3[,c('dataset.train', 'dataset.test', 'pearson')])
+    predictors19 <- rbind(res.2,res.3)
+    predictors19$pearson <- abs(predictors19$pearson)
+    head(predictors19)
+    plotResult(predictors19, variable = "pearson")
+    predictors19 %>%
+      group_by(dataset.train, dataset.test) %>%
+      summarise("meanPA" = mean(pearson))
+    
+    #AUDPC
+    nds.no_noise.AUDPC<- createNoisyDataset(
+      name = 'AUDPC, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$AUDPC)
+    res.AUDPC = GROAN.run(nds = nds.no_noise.AUDPC, wb = wb3, nds.test = 
+                      list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    #LP50
+    nds.no_noise.LP50<- createNoisyDataset(
+      name = 'LP50, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$LP50)
+    res.LP50 = GROAN.run(nds = nds.no_noise.LP50, wb = wb3, nds.test = 
+                            list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    #IF
+    nds.no_noise.IF<- createNoisyDataset(
+      name = 'IF, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$IF)
+    res.IF = GROAN.run(nds = nds.no_noise.IF, wb = wb3, nds.test = 
+                            list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    #IT
+    nds.no_noise.IT<- createNoisyDataset(
+      name = 'IT, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$IT)
+    res.IT = GROAN.run(nds = nds.no_noise.IT, wb = wb3, nds.test = 
+                            list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    #DS
+    nds.no_noise.DS<- createNoisyDataset(
+      name = 'DS, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$DS)
+    res.DS = GROAN.run(nds = nds.no_noise.DS, wb = wb3, nds.test = 
+                            list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    #FAI2
+    nds.no_noise.FAI2<- createNoisyDataset(
+      name = 'FAI2, no noise',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$I_cc_FAI)
+    res.FAI2 = GROAN.run(nds = nds.no_noise.FAI2, wb = wb3, nds.test = 
+                            list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
+    #bind and plot
+    test1 <- rbind(res.AUDPC, res.LP50, res.IF, res.IT, res.DS, res.FAI2)
+    write.xlsx(test1,"results/CCtrain_fieldtest.xlsx")
+    test.rrblup <- test1 %>%
+      group_by(dataset.train, dataset.test) %>%
+      summarise("meanPA" = abs(mean(pearson)))
+    plotResult(test1, variable = "pearson")
+    write.xlsx(test.rrblup, "results/CCtrain_fieldtest.xlsx")
+    ggplot(test1, aes(x= dataset.train, y = abs(pearson)))+
+      geom_boxplot(aes(fill = dataset.test)) +
+      theme_bw()
+    
+#ahora voy a hacer un wb que incluya los cuatro regresores más usados: rrBLUP, GBLUP, BL y RKHS
+    #sabiendo que FAI2 es el mejor predictor para DS2019, ahora voy a ver qué modelo es mejor:
+    wb4 = createWorkbench(
+      #parameters defining crossvalidation
+      folds = 10, reps = 15, stratified = T, 
+      
+      #parameters defining save-on-hard-disk policy
+      outfolder = "/resuts", saveHyperParms = T, saveExtraData = T,
+      
+      #a regressor
+      regressor = phenoRegressor.rrBLUP, regressor.name = 'rrBLUP'
+    )
+    wb5 = addRegressor(
+      #the Workbench to be updater
+      wb4,
+      #the new regressor
+      regressor = phenoRegressor.BGLR, regressor.name = 'Bayesian Lasso',
+      
+      #regressor-specific parameters
+      type = 'BL'
+    )
+    print(wb5)
+    dwb6 = addRegressor(
+      wb5,
+      regressor = phenoRegressor.BGLR, regressor.name = 'G-BLUP'
+    )
+    wb7 = addRegressor(
+      wb6,
+      regressor = phenoRegressor.BGLR, regressor.name = 'RKHS'
+    )
+print(wb7)    
+res.multimodel = GROAN.run(nds = nds.no_noise.FAI2, wb = wb7, nds.test = nds.no_noise.R19)
+write.xlsx(res.multimodel, "res.multimodel_multitrait_DS2019.xlsx")
+    plotResult(res.multimodel)
+    res.multimodel %>%
+      group_by(dataset.train, dataset.test, regressor) %>%
+      summarise("meanPA" = mean(pearson))
+
+res.BL.rrBLUP = GROAN.run(nds = nds.no_noise.FAI2, wb = wb5, nds.test = nds.no_noise.R19)
+plotResult(res.BL.rrBLUP)
+res.BL.rrBLUP %>%
+  group_by(dataset.train, dataset.test, regressor) %>%
+  summarise("meanPA" = mean(pearson))
+
+ my.pheno = Pheno_rust_df$I_cc_FAI
+my.pheno[160:320] = NA
+res1 = phenoRegressor.rrBLUP(phenotypes = my.pheno, genotypes = DArT_GROAN_SVDI)
+print(names(res1))
+plot(
+   x = Pheno_rust_df$R19, xlab = "Real values",
+   y = res1$predictions, ylab = "Predicted values")
+abline(a=0, b=1) #adding first quadrant bisector, for reference
+cor(Pheno_rust_df$R19,res1$predictions)
+cor(Pheno_rust_df$DS,Pheno_rust_df$R19)
+
+#Voy a repetir un GROAN con los dos modelos más usados rrBLUP y GBLUP para cada trait campo y cámara:
+res.no_noise.AUDPC <- GROAN.run(nds.no_noise.AUDPC, wb5)
+res.no_noise.DS <- GROAN.run(nds.no_noise.DS, wb5)
+res.no_noise.FAI2 <- GROAN.run(nds.no_noise.FAI2, wb5)
+res.no_noise.IF <- GROAN.run(nds.no_noise.IF, wb5)
+res.no_noise.IT <- GROAN.run(nds.no_noise.IT, wb5)
+res.no_noise.LP50 <- GROAN.run(nds.no_noise.LP50, wb5)
+res.no_noise.R18 <- GROAN.run(nds.no_noise.R18, wb5)
+res.no_noise.R19 <- GROAN.run(nds.no_noise.R19, wb5)
+res.no_noise.R20 <- GROAN.run(nds.no_noise.R20, wb5)
+
+res.total2 <- rbind(res.no_noise.AUDPC, res.no_noise.DS, res.no_noise.FAI2, res.no_noise.IF, res.no_noise.IT,
+                         res.no_noise.LP50, res.no_noise.R18, res.no_noise.R19, res.no_noise.R20)
+write.xlsx(res.total2, "results/field&CC_traits_twomodels.xlsx")
+
+plotResult(res.total2)
+res.total2 %>%
+  group_by(dataset.train, dataset.test, regressor) %>%
+  summarise("meanPA" = mean(pearson))
