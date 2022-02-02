@@ -716,3 +716,27 @@ BLUP <- read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = T, sheet =
 head(BLUP)
 
 corr_plot(BLUP, c("GDD_F", "GDD_P", "Rust", "Biomass","Yield", "AUDPC", "LP50", "IF", "IT", "DS"))
+
+#genetic correlation:
+DS_DS <- read_xlsx("data/CC_R19traits.xlsx", sheet = "Index_DS")
+
+mixed_modsdfsdf <- 
+  gamem_met(DS_DS,
+            env = ENV,
+            gen = GEN,
+            resp = Rust,
+            random = "gen", #Default
+            verbose = TRUE) #Default
+get_model_data(mixed_modsdfsdf, "genpar")
+
+install.packages("quant_gen")
+Pheno_rust <- data.frame(Pheno_rust)
+Pheno_rust$R19 <- as.numeric(Pheno_rust$R19)
+Pheno_rust$AUDPC <- as.numeric(Pheno_rust$AUDPC)
+Pheno_rust$IF <- as.numeric(Pheno_rust$IF)
+Pheno_rust$IT <- as.numeric(Pheno_rust$IT)
+Pheno_rust$DS <- as.numeric(Pheno_rust$DS)
+Pheno_rust$I_cc_FAI <- as.numeric(Pheno_rust$I_cc_FAI)
+corr_plot(Pheno_rust, c("R19", "AUDPC", "IF", "IT", "DS", "I_cc_FAI"))
+
+0.30/(sqrt(0.76)*sqrt(0.67))

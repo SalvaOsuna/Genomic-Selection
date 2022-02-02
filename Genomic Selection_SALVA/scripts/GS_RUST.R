@@ -10,7 +10,15 @@
     DArT_rust <- DArT[-c(288, 294, 300, 320, 325), ] #Estas entradas no están evaluadas en CC así que las quito
     ##rrBLUP necesita la matriz en formato {-1, 0, 1} así que cambio los 0 por -1:
 
-# 2) Make sure NAs are properly read it.
+    #Also load SNP markers:
+    myG <- as.matrix(read_table("data/SNP_numeric.txt", col_names = T))
+    myG_rust <- myG[-c(288, 294, 300, 320, 325), -c(1)] #Estas entradas no están evaluadas en CC así que las quito
+    
+    myG_rust[myG_rust == 1] <- 2
+    myG_rust[myG_rust == 0,5] <- 1
+    
+
+    # 2) Make sure NAs are properly read it.
     # Calculate the % of missing value within the matrix n x m:
     dim(DArT_rust)
     (sum(is.na(DArT_rust))/(length(DArT_rust)))*100  # there is a 5.31 % of missing data into the matrix n x m

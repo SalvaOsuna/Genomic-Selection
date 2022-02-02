@@ -1,0 +1,110 @@
+---
+title: "GS rust"
+author: "Salvador Osuna-Caballero"
+date: "6/12/2021"
+output:
+  word_document:
+    toc: yes
+  html_document:
+    toc: yes
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+## Scientific questions
+
+1.  Is a multi-trait index approach a better predictor for rust disease than a single trait in controlled conditions?
+
+2.  In case the multi-trait index has a better predictive ability than single trait, either in controlled condition or field, is the multi-trait index a better predictor than single-trait for rust disease in field?
+
+    Here we propose two scenarios:
+
+    -   the predictive ability over field (new environment) testing new lines [CV2].
+
+    -   the predictive ability over field (new environment) testing the same lines used for training in controlled condition (old environment) [CV1].
+
+3.  Is the predictive ability, in every case, affected by the marker type?. i.e. SNPs or DArT-seq?
+
+# Material and Methods
+
+## Plant Material
+
+The pea panes has 320 genotypes of *Pissum* spp. including wild relatives, landraces, cultivars, breeding lines and unknown material from all continents. It also has a representative collection of *Pissum* genre, including the three main species (*P. sativum*, *P. fulvum* and *P. abyssinucum*) and some interesting *P. sativum* subspecies (arvense, elatius, *transcaucasicum*, *choresmicum* and cinereum).
+
+## Phenotyping and statistical analysis
+
+The pea panel has been evaluated in controlled and field conditions for rust disease. The trait evaluated in field was disease severity (DS), as a subjective estimation of the damage caused by rust (% rust damage covering the whole plant). In controlled conditions the traits evaluated were:
+
+-   IF. Infection frequency as number of pustules per cm^2^ of leaf, counted every day from day 7 after inoculation to day 14, when the life cycle of rust ended.
+
+-   AUDPC. The IF measured every day allow to calculate the area under the disease progress curve.
+
+-   IT. The infection type according to (Stackman, Stewart, and Loegering 1962)
+
+-   DS. Percentage of pustules over the plant.
+
+In controlled conditions the 320 accessions were grown with two replicates and artificially inoculated with rust spores at day \~12 post sown and two different inoculations were done, so 4 replicates per accession are considered. In field, every experimental unit (10 seeds of the same accession in a single row) were sown three times in a randomized complete block design (RCBD) with Cartouche cv. as control.
+
+Rust traits underwent an analysis of variance (ANOVA) aimed to test the variation between environments (CC or field) and among genotypes and the genotype × environment (GE) interaction. The extent of GE environments was estimated by the genetic correlation ($r_g$) for genotype rust responses across environments calculated according to Burdon et al. 1977. For each environment, components of variance relative to variation among genotypes ($S_G^2$) and experimental error ($S_e^2$) were estimated by a restricted maximum likelihood (REML) method, to compute best linear unbiased prediction (BLUP) genotype values according to DeLacy et al. (1996) that were used as phenotyping data for compute a multi-trait index based on factor analysis and ideotype-design proposed by Rocha et al. (2018) and for subsequent genomic prediction assessments. The extent of genetic variation in each trait and environment were expressed as the genetic coefficient of variation $CV_g = (S_G/m) × 100$, where m = trait mean value. The broad-sense heritability on an entry mean basis in each trait and environment were estimated as reported in Nizam Uddin et al. (1994).
+
+## Genotyping and data filtering
+
+Pea core collection was genotyped with the DArTSeq approach by DiversityArray Ltd (Australia). For this, third composed leaves from 20 two weeks-old seedlings of each accessions grown under controlled condition were harvested, pooled together, flash frozen in liquid nitrogen and lyophilized. Then, DNA was extracted following to the method stipulated by Diversity Arrays P/L, Canberra, Australia and adjusted at 20 ng/µl prior to DArT marker analysis using the high density Pea DArTseq 1.0 array (50,000 markers) adapted for wild *Pisum spp.* accessions. Complexity reduction with the *Pst*I,-*Mse*I restriction enzymes, library construction, amplification and Illumina sequencing were performed by Diversity Arrays Technology Pty Ltd (Canberra, Australia) as described in Barilli et al. 2015. DArTSeq sequence analysis retrieve two set of markers, SNPs and presence--absence sequence variants (Silico-DArT), collectively referred to as DArT-Seq markers.
+
+Data cleaning was then performed for both type of DArT markers to remove low quality and non-polymorphic markers as described before. Accordingly, DArT markers with \> 20% missing data, minor allele frequency (MAF) \< 5% and heterozygosity \> 0.1% were removed from the analysis. Missing data were imputed with SVD method following Nazzicari et al. 2016 recommendations.
+
+## Genomic regression models and data configurations
+
+Genome-enabled predictions were based on two data set markers: SNP markers and DArT-Seq markers. We envisaged two genomic prediction models that tended to stand out for predictive ability in previous model comparisons for legume species (Annicchiarico et al. 2017b) or other crops (Soriano Viana et al. 2016), namely, Ridge regression BLUP (rrBLUP) and Bayesian Lasso (BL).
+
+The rrBLUP model (Meuwissen et al. 2001), which assumes the effects of all loci to have a common variance, is well suited for traits that are influenced by a large number of minor genes. In its linear mixed additive model, each marker is assigned an effect as a solution of the equation:
+
+$y = μ + Gu + ε$\
+where $y$ is the vector of observed phenotypes, $μ$ is the mean of $y$, $G$ is the genotype matrix (i.e., {0, 1, 2} for biallelic SNP markers of genotypes or {0, 1} for absence/presence sequence variants DArT-Seq markers), $u\sim N\ (0,~Iσ^2u)$ is the vector of marker effects, and $ε\sim N\ (0,~Iσ^2ε)$ is the vector of residuals. Solving with the standard ridge-regression method, the solution is:\
+$u = G'~(G' + λ~I)^{-1}~(y-μ)$\
+where $λ = σ^2_ e/σ^2_u$ is the ridge parameter, representing the ratio between residual and markers variance (Searle et al. 2009). Given the vector of effects, it is then possible to predict phenotypes and estimate genetic breeding values. We estimated $λ$ by a REML method implemented by a spectral decomposition algorithm (Kang et al. 2008). Bayesian models assume relatively few markers with large effects, and allow markers to have different effects and variances (Wang et al. 2018). They assign prior densities to markers effects, thereby inducing different types of shrinkage. The solution is obtained by sampling from the resulting posterior density through a Gibbs sampling approach (Casella and George 1992). Among these models, we selected BL as described by Park and Casella (2008).\
+The ability of genome-enabled models to predict breeding values for rust traits on pea panel was assessed using the R package GROAN (Nazzicari and Biscarini 2017). Predictive ability ($r_{ab}$) was estimated as Pearson's correlation between observed and predicted phenotypes following these three CV strategies:
+
+1.  The first CV procedure, referred to a single trait and single environment cross-validation, was performed testing every trait per environment with their own and considering the multi-trait index as a single trait to compare their predictive ability.
+
+2.  The second CV procedure, referred to a single trait and cross-environment validation, was performed by predicting the breeding value of the untrained environment using a model trained on the remaining one, testing the same lines.
+
+3.  The third CV procedure, also referred to a single trait and intra environment cross-validation, but using new lines for predict them in a new environment not included in the training.
+
+On the whole, we assessed 12-model configurations represented by combinations of two genomic prediction models (rrBLUP or BL), three CV procedures and two markers dataset (DArT-seq and SNP). The accuracy ($r_{Ac}$) of genome-enabled models was estimated from $r_{ab}$ and the square root of the broad-sense heritability on an entry mean basis in the validation environment (H) according to Lorenz et al. (2011) as $r_{Ac} = r_{ab}/H$
+
+# Results
+
+## Phenotypic variation and genotype × environment interaction
+
+**Table 1.** Mean value, broad-sense heritability ($H^2$) on an entry mean basis and genetic coefficient of variation ($CV_g$) for white pea rust disease of 320 accessions in two grown conditions (environments).
+
+| Trait | Environment | Mean ± S.E.   | $H^2$ ± S.E. | $CV_g$ (%)^a^ |
+|-------|-------------|---------------|--------------|---------------|
+| IF    | CC          | 50.25 ± 1.19  | 0.76 ± 0.02  | 47.2          |
+| AUDPC | CC          | 179.84 ±4 .18 | 0.76 ±0.02   | 48.5          |
+| IT    | CC          | 3.79 ± 0.01   | 0.67 ± 0.03  | 36.1          |
+| DS    | CC          | 20.01 ± 0.29  | 0.86 ± 0.01  | 63.3          |
+| DS    | Field       | 12.82 ± 0.41  | 0.67 ± 0.04  | 41.5          |
+
+: ^a^ Genetic variance always different from zero at P \< 0.001
+
+Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease traits of across controlled condition and field environments with traits combinations.
+
+| Pairs of environments | Pair of traits | $r$      | $r_{g}$ ^a^ |
+|-----------------------|----------------|----------|-------------|
+| CC vs Field           | AUDPC vs DS    | 0.22\*\* | 0.31        |
+| CC vs Field           | IF vs DS       | 0.25\*\* | 0.35        |
+| CC vs Field           | IT vs DS       | 0.23\*\* | 0.34        |
+| CC vs Field           | DS vs DS       | 0.26\*\* | 0.34        |
+| CC vs Field           | Index vs DS    | 0.30\*\* | 0.42        |
+
+: \*\*: different (P \< 0.01) from zero\
+^a^ Significant (P \< 0.01) genotype × environment interaction for all pairs of traits
+
+## Genome-enabled modeling
