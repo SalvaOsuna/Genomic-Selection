@@ -709,110 +709,59 @@ res.DStoR19 %>%
   group_by(dataset.train, dataset.test, regressor) %>%
   summarise("meanPA" = mean(pearson))
 
-#MULTI ENVIRONMENT 
-install.packages("BMTME")
-library(BMTME)
+#Bayesian Genomic single-trait, multi-environment Linear Regression Model
 #Function description:
-BME(
-  Y, #(matrix) Phenotypic response where each column is a different environment.
-  Z1, # (matrix) Matrix design for the genetic effects.
-  nIter = 1000L, #(integer) Number of iterations to fit the model.
-  burnIn = 300L, #(integer) Number of items to burn at the beginning of the model.
-  thin = 2L, #(integer) Number of items to thin the model.
-  bs = ceiling(dim(Z1)[2]/6), # (integer) Number of groups.
-  parallelCores = 1, #(integer) Number of cores to use.
-  digits = 4, #(integer) Number of digits of accuracy in the results.
+BMORS_Env(
+  data = NULL, #(data.frame) Phenotypic response where each column is a different trait and the first column are the name of the environment where it was evaluated.
+  testingEnv = "", #(string) Name of the Environment to test.
+  ETA = NULL, #(matrix) This is a two-level list used to specify the regression function (or linear predictor).
+  covModel = "BRR", # (string) Name of the covariates model to implement (BRR, BayesA, BayesB, BayesC)
+  predictor_Sec_complete = FALSE, #(Logical) FALSE by default
+  nIter = 2500, #(integer) Number of iterations to fit the model.
+  burnIn = 500, #(integer) Number of items to burn at the beginning of the model
+  thin = 5, #(integer) Number of items to thin the model.
   progressBar = TRUE, #(Logical) Show the progress bar.
-  testingSet = NULL #(object or vector) Crossvalidation object or vector with the positions to use like testing in a cross-validation test.
+  digits = 4 #(integer) Number of digits of accuracy in the results.
 )
-    #EXAMPLE:
-    data("WheatMadaToy")
-    phenoMada <- (phenoMada[order(phenoMada$GID),])
-    dim(phenoMada)
-    #Matrix design
-    LG <- cholesky(genoMada)
-    dim(LG)
-    ZG1 <- model.matrix(~0 + as.factor(phenoMada$GID))
-    dim(ZG)
-    Z.G <- ZG %*% LG
-    dim(Z.G)
-    #Pheno data
-    Y <- as.matrix(phenoMada[, -c(1)])
-    dim(Y)
-    # Check fitting
-    fm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50)
-    
-    # Check predictive capacities of the model with CrossValidation object
-    pheno <- data.frame(GID = phenoMada[, 1], Env = '', Response = phenoMada[, 3])
-    CrossV <- CV.RandomPart(pheno, NPartitions = 4, PTesting = 0.2, set_seed = 123)
-    pm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50, testingSet = CrossV)
-    
-    #My DATA:
-    data("WheatMadaToy")
-    phenoMada <- (phenoMada[order(phenoMada$GID),])
-     multiENV_rust <- Pheno_rust_df %>%
-       select(GEN, R19, I_cc_FAI)
-     head(multiENV_rust)
-     write.xlsx(multiENV_rust, "multiENV_rust.xlsx")
-     multiENV_rust <- data.frame(read.xlsx("multiENV_rust.xlsx"))
-       
-    #Matrix design
-     geno <- as.matrix(read.xlsx(xlsxFile = "data/GenPea_SilDArT_Kinship_rust.xlsx", colNames = T, rowNames = T))
-    LG <- cholesky(geno)
-    dim(LG)
-    ZG <- model.matrix(~0 + as.factor(multiENV_rust$GEN))
-    dim(ZG)
-    Z.G <- ZG %*% LG
-    dim(Z.G)
-    #Pheno data
-    Y <- as.matrix(multiENV_rust[, -c(1)])
-    dim(Y)
-    # Check fitting
-    fm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50)
-    # Check predictive capacities of the model with CrossValidation object
-    pheno <- data.frame(GID = phenoMada[, 1], Env = '', Response = phenoMada[, 3])
-    CrossV <- CV.RandomPart(pheno, NPartitions = 4, PTesting = 0.2, set_seed = 123)
-    pm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50, testingSet = CrossV)
-    
-    #BMTSE
-      #my data:
-    multiENV_rust <- data.frame(read.xlsx("multiENV_rust.xlsx")) #pheno data
-    head(multiENV_rust)
-    
-    LG <- cholesky(geno)
-    ZG <- model.matrix(~0 + as.factor(multiENV_rust$GEN))
-    Z.G <- ZG %*% LG
-    Z.E <- model.matrix(~0 + as.factor(multiENV_rust$ENV))
-    dim(Z.E)
-    ZEG <- model.matrix(~0 + as.factor(multiENV_rust$GEN):as.factor(multiENV_rust$ENV))
-    G2 <- kronecker(diag(length(unique(multiENV_rust$ENV))), data.matrix(geno))
-    LG2 <- cholesky(G2)
-    Z.EG <- ZEG %*% LG2
-    Y <- as.matrix(multiENV_rust[, -c(1, 2)])
-    fm <- BMTME(Y = Y, X = Z.E, Z1 = Z.G, Z2 = Z.EG, nIter =15000, burnIn =10000, thin = 2,bs = 50)    
 
-      #example:
-    phenoMaizeToy<-(phenoMaizeToy[order(phenoMaizeToy$Env,phenoMaizeToy$Line),])
-    
-    rownames(phenoMaizeToy)=1:nrow(phenoMaizeToy)
-    
-    head(phenoMaizeToy)
-    LG <- cholesky(genoMaizeToy)
-    
-    ZG <- model.matrix(~0 + as.factor(phenoMaizeToy$Line))
-    
-    Z.G <- ZG %*% LG
-    
-    Z.E <- model.matrix(~0 + as.factor(phenoMaizeToy$Env))
-    
-    ZEG <- model.matrix(~0 + as.factor(phenoMaizeToy$Line):as.factor(phenoMaizeToy$Env))
-    
-    G2 <- kronecker(diag(length(unique(phenoMaizeToy$Env))), data.matrix(genoMaizeToy))
-    
-    LG2 <- cholesky(G2)
-    
-    Z.EG <- ZEG %*% LG2
-    
-    Y <- as.matrix(phenoMaizeToy[, -c(1, 2)])    
-    fm <- BMTME(Y = Y, X = Z.E, Z1 = Z.G, Z2 = Z.EG, nIter =15000, burnIn =10000, thin = 2,bs = 50)    
-    
+pheno <- data.frame(read.xlsx("multiENV_rust.xlsx", sheet = "Sheet 1", colNames = T))
+#Matrix design
+geno <- data.frame(read.xlsx("data/GenPea_SilDArT_Kinship_rust.xlsx", sheet = "Sheet 1", colNames = T, rowNames = T))
+LG <- cholesky(geno)
+write.csv(LG, "cholesky_geno.txt", sep = "_")
+ZG <- model.matrix(~0 + as.factor(pheno$GEN))
+
+Z.G <- ZG %*% LG
+
+#Pheno data
+Y <- as.matrix(pheno[, -c(1:3)])
+# Check fitting
+fm <- BME(Y = Y, Z1 = Z.G, nIter = 10000, burnIn = 5000, thin = 2, bs = 50)
+#Linear Predictor
+ETA <- list(Gen = list(X = Z.G, model = 'BRR'))
+dataset <- pheno[, 2:4] #Must Include in the first column the environments
+dataset$Rust <- as.numeric(dataset$Rust)
+#Check predictive capacities of the model
+pm <- BMORS_Env(dataset, testingEnv = 'R19', ETA = ETA, covModel = "BRR", nIter = 10000,
+                burnIn = 5000, thin = 2, progressBar = FALSE, digits = 3)
+dataset <-length(phenoMaizeToy[, 2:5]) == 1
+
+length(dataset) == 1
+
+data('MaizeToy')
+phenoMaizeToy <- phenoMaizeToy[order(phenoMaizeToy$Env, phenoMaizeToy$Line),]
+#Matrix design
+LG <- cholesky(genoMaizeToy)
+ZG <- model.matrix(~0 + as.factor(phenoMaizeToy$Line))
+Z.G <- ZG %*% LG
+length(ETA)
+#Linear Predictor
+ETA <- list(Gen = list(X = Z.G, model = 'BL'))
+dataset <- phenoMaizeToy[, 2:5] #Must Include in the first column the environments
+#Check predictive capacities of the model
+pm <- BMORS_Env(dataset, testingEnv = c("KTI",'EBU'), ETA = ETA, covModel = 'BL', nIter = 10000,
+                burnIn = 5000, thin = 2, progressBar = FALSE, digits = 3)
+names(pm)
+length(dataset) == 1
+class(dataset)
+summary(pm)
