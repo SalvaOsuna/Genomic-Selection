@@ -68,15 +68,15 @@ $y = μ + Gu + ε$\
 where $y$ is the vector of observed phenotypes, $μ$ is the mean of $y$, $G$ is the genotype matrix (i.e., {0, 1, 2} for biallelic SNP markers of genotypes or {0, 1} for absence/presence sequence variants DArT-Seq markers), $u\sim N\ (0,~Iσ^2u)$ is the vector of marker effects, and $ε\sim N\ (0,~Iσ^2ε)$ is the vector of residuals. Solving with the standard ridge-regression method, the solution is:\
 $u = G'~(G' + λ~I)^{-1}~(y-μ)$\
 where $λ = σ^2_ e/σ^2_u$ is the ridge parameter, representing the ratio between residual and markers variance (Searle et al. 2009). Given the vector of effects, it is then possible to predict phenotypes and estimate genetic breeding values. We estimated $λ$ by a REML method implemented by a spectral decomposition algorithm (Kang et al. 2008). Bayesian models assume relatively few markers with large effects, and allow markers to have different effects and variances (Wang et al. 2018). They assign prior densities to markers effects, thereby inducing different types of shrinkage. The solution is obtained by sampling from the resulting posterior density through a Gibbs sampling approach (Casella and George 1992). Among these models, we selected BL as described by Park and Casella (2008).\
-The ability of genome-enabled models to predict breeding values for rust traits on pea panel was assessed using the R package GROAN (Nazzicari and Biscarini 2017). Predictive ability ($r_{ab}$) was estimated as Pearson's correlation between observed and predicted phenotypes following these three CV strategies:
+The ability of genome-enabled models to predict breeding values for rust traits on pea panel was assessed using the R package GROAN (Nazzicari and Biscarini 2017). Predictive ability ($r_{ab}$) was estimated as Pearson's correlation between observed and predicted phenotypes following three CV strategies:
 
-1.  The first CV procedure, referred to a single trait and single environment cross-validation, was performed testing every trait per environment with their own and considering the multi-trait index as a single trait to compare their predictive ability.
+1.  The first CV procedure, referred to a single trait and intra-environment cross-validation, was performed testing every trait per environment with their own and considering the multi-trait index as a single trait to compare their predictive ability.
 
-2.  The second CV procedure, referred to a single trait and cross-environment validation, was performed by predicting the breeding value of the untrained environment using a model trained on the remaining one, testing the same lines.
+2.  The second CV procedure, referred to a single trait and cross-environment validation, was performed by predicting the breeding value of the untrained environment using a model trained on the remaining one, testing the same lines [CV1]
 
-3.  The third CV procedure, also referred to a single trait and intra environment cross-validation, but using new lines for predict them in a new environment not included in the training.
+3.  The third CV procedure, also referred to a single trait and inter environment cross-validation, but using new lines for predict them in a new environment not included in the training [CV2].
 
-On the whole, we assessed 12-model configurations represented by combinations of two genomic prediction models (rrBLUP or BL), three CV procedures and two markers dataset (DArT-seq and SNP). The accuracy ($r_{Ac}$) of genome-enabled models was estimated from $r_{ab}$ and the square root of the broad-sense heritability on an entry mean basis in the validation environment (H) according to Lorenz et al. (2011) as $r_{Ac} = r_{ab}/H$
+On the whole, we assessed 12-model configurations represented by combinations of two genomic prediction models (rrBLUP or BL), three CV procedures and two markers data set (DArT-seq or SNP). The accuracy ($r_{Ac}$) of genome-enabled models was estimated from $r_{ab}$ and the square root of the broad-sense heritability on an entry mean basis in the validation environment ($H$) according to Lorenz et al. (2011) as $r_{Ac} = r_{ab}/H$
 
 # Results
 
@@ -94,7 +94,7 @@ On the whole, we assessed 12-model configurations represented by combinations of
 
 : ^a^ Genetic variance always different from zero at P \< 0.001
 
-Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease traits of across controlled condition and field environments with traits combinations.
+Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease traits of across both environments with traits combinations.
 
 | Pairs of environments | Pair of traits | $r$      | $r_{g}$ ^a^ |
 |-----------------------|----------------|----------|-------------|
@@ -108,3 +108,28 @@ Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease
 ^a^ Significant (P \< 0.01) genotype × environment interaction for all pairs of traits
 
 ## Genome-enabled modeling
+
+**Table 3**. Intra-environment predictive ability for rust pea disease in two environment with their traits evaluated using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training using a SNP or DArT-Seq marker data set ^a^
+
+|                 |        | CC    |       |       |       |       | Field |       |
+|-----------------|--------|-------|-------|-------|-------|-------|-------|-------|
+| Marker data set | Model  | AUDPC | IF    | IT    | DS    | Index | DS    | Mean  |
+| SNP             | rrBLUP | 0.597 | 0.563 | 0.585 | 0.600 | 0.623 | 0.611 | 0.597 |
+| DArT-Seq        | rrBLUP | 0.602 | 0.568 | 0.579 | 0.603 | 0.627 | 0.615 | 0.599 |
+| SNP             | BL     | 0.599 | 0.564 | 0.580 | 0.605 | 0.628 | 0.612 | 0.598 |
+| DArT-Seq        | BL     | 0.602 | 0.569 | 0.571 | 0.606 | 0.630 | 0.611 | 0.598 |
+
+: ^a^ Using 50 repetitions of 10-fold stratified cross validations per individual analysis.
+
+**Table 4**. Cross-environment predictive ability and predictive accuracy for rust pea disease across different traits and two environments using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training ^a^
+
+|                   |                        | P. ability |     | P. accuracy |     |
+|-------------------|------------------------|------------|-----|-------------|-----|
+| Training set (CC) | Validation set (Field) | rrBLUP     | BL  | rrBLUP      | BL  |
+| AUDPC             | DS                     | 0.222      |     | 0.255       |     |
+| IF                | DS                     | 0.257      |     | 0.295       |     |
+| IT                | DS                     | 0.262      |     | 0.320       |     |
+| DS                | DS                     | 0.263      |     | 0.284       |     |
+| Index             | DS                     | 0.311      |     | 0.356       |     |
+
+: ^a^ For model training with DArT-seq marker data set using 50 repetitions of 10-fold stratified cross validations per individual analysis

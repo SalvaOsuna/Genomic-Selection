@@ -11,11 +11,14 @@
     ##rrBLUP necesita la matriz en formato {-1, 0, 1} así que cambio los 0 por -1:
 
     #Also load SNP markers:
-    myG <- as.matrix(read_table("data/SNP_numeric.txt", col_names = T))
+    myG <- as.matrix(read_excel("data/SNP_numeric2.xlsx", col_types = num, col_names = T))
+    num <- sample("numeric", 11512, replace = T)
+    
     myG_rust <- myG[-c(288, 294, 300, 320, 325), -c(1)] #Estas entradas no están evaluadas en CC así que las quito
     
     myG_rust[myG_rust == 1] <- 2
-    myG_rust[myG_rust == 0,5] <- 1
+    myG_rust[myG_rust == 0.5] <- 1
+    myG_rust <- as.data.frame(myG_rust)
     
 
     # 2) Make sure NAs are properly read it.
@@ -37,6 +40,7 @@
     head(Pheno_rust)
     dim(Pheno_rust)
     dim(DArT_rust_SVDI)
+    dim(myG_rust)
   
 # 5) Define the training (70 % = 224 genotypes) and validation (30 % = 96 genotypes) populations
     train = as.matrix(sample(1:320, 224))
@@ -499,7 +503,7 @@
                            saveExtraData = F,
                           type = 'BL',
                           stratified = T,
-                          reps = 15,
+                          reps = 50,
                           folds = 10)
     print(wb2)
     #re run the code with the new wb:
@@ -638,10 +642,10 @@
     #sabiendo que FAI2 es el mejor predictor para DS2019, ahora voy a ver qué modelo es mejor:
     wb4 = createWorkbench(
       #parameters defining crossvalidation
-      folds = 10, reps = 15, stratified = T, 
+      folds = 10, reps = 50, stratified = F, 
       
       #parameters defining save-on-hard-disk policy
-      outfolder = "/resuts", saveHyperParms = T, saveExtraData = T,
+      outfolder = NULL, saveHyperParms = F, saveExtraData = F,
       
       #a regressor
       regressor = phenoRegressor.rrBLUP, regressor.name = 'rrBLUP'
@@ -773,3 +777,82 @@ names(pm)
 length(dataset) == 1
 class(dataset)
 summary(pm)
+
+
+#Voy a repetir un GROAN con los dos modelos más usados rrBLUP y GBLUP para cada trait campo y cámara, esta vez con SNPs:
+dim(myG_rust)
+dim(Pheno_rust_df)
+Pheno_rust_df$AUDPC <- as.numeric(Pheno_rust_df$AUDPC)
+nds.no_noise.AUDPC<- createNoisyDataset(
+  name = 'AUDPC, no noise',
+  genotypes = myG_rust, 
+  phenotypes = Pheno_rust_df$AUDPC)
+res.no_noise.AUDPC <- GROAN.run(nds.no_noise.AUDPC, wb5)
+
+Pheno_rust_df$IF <- as.numeric(Pheno_rust_df$IF)
+nds.no_noise.IF<- createNoisyDataset(
+  name = 'IF, no noise',
+  genotypes = myG_rust, 
+  phenotypes = Pheno_rust_df$IF)
+res.no_noise.IF <- GROAN.run(nds.no_noise.IF, wb5)
+
+Pheno_rust_df$IT <- as.numeric(Pheno_rust_df$IT)
+nds.no_noise.IT<- createNoisyDataset(
+  name = 'IT, no noise',
+  genotypes = myG_rust, 
+  phenotypes = Pheno_rust_df$IT)
+res.no_noise.IT <- GROAN.run(nds.no_noise.IT, wb5)
+
+Pheno_rust_df$DS <- as.numeric(Pheno_rust_df$DS)
+nds.no_noise.DS<- createNoisyDataset(
+  name = 'DS, no noise',
+  genotypes = myG_rust, 
+  phenotypes = Pheno_rust_df$DS)
+res.no_noise.DS <- GROAN.run(nds.no_noise.DS, wb5)
+
+Pheno_rust_df$R19 <- as.numeric(Pheno_rust_df$R19)
+nds.no_noise.R19<- createNoisyDataset(
+  name = 'R19, no noise',
+  genotypes = myG_rust, 
+  phenotypes = Pheno_rust_df$R19)
+res.no_noise.R19 <- GROAN.run(nds.no_noise.R19, wb5)
+
+Pheno_rust_df$I_cc_FAI <- as.numeric(Pheno_rust_df$I_cc_FAI)
+nds.no_noise.I_cc_FAI<- createNoisyDataset(
+  name = 'I_cc_FAI, no noise',
+  genotypes = myG_rust, 
+  phenotypes = Pheno_rust_df$I_cc_FAI)
+res.no_noise.I_cc_FAI <- GROAN.run(nds.no_noise.I_cc_FAI, wb5)
+
+res.total3 <- rbind(res.no_noise.AUDPC, res.no_noise.DS, res.no_noise.I_cc_FAI, res.no_noise.IF, res.no_noise.IT,
+                    res.no_noise.R19)
+write.xlsx(res.total3, "results/field&CC_traits_twomarkers.xlsx")
+
+plotResult(res.total3)
+res.total3 %>%
+  group_by(dataset.train, dataset.test, regressor) %>%
+  summarise("meanPA" = mean(pearson))
+
+#Cual es el mejor predictor sobre DS2019 de los datos de cámara y campo con los marcadores SNP?
+res.AUDPC = GROAN.run(nds = nds.no_noise.AUDPC, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.AUDPC[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.IF = GROAN.run(nds = nds.no_noise.IF, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.IF[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.IT = GROAN.run(nds = nds.no_noise.IT, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.IT[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.DS = GROAN.run(nds = nds.no_noise.DS, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.DS[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.I_cc_FAI = GROAN.run(nds = nds.no_noise.I_cc_FAI, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.I_cc_FAI[,c('dataset.train', 'dataset.test', 'pearson')])
+
+predictorsSNP <- rbind(res.AUDPC,res.IF,res.IT,res.DS,res.I_cc_FAI)
+predictorsSNP$pearson <- abs(predictorsSNP$pearson)
+head(predictorsSNP)
+plotResult(predictorsSNP, variable = "pearson")
+predictorsSNP %>%
+  group_by(dataset.train, dataset.test) %>%
+  summarise("meanPA" = mean(pearson))
