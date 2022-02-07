@@ -856,3 +856,5 @@ plotResult(predictorsSNP, variable = "pearson")
 predictorsSNP %>%
   group_by(dataset.train, dataset.test) %>%
   summarise("meanPA" = mean(pearson))
+
+write.xlsx(predictorsSNP, "results/field&CC_traits_predictorsSNP.xlsx")

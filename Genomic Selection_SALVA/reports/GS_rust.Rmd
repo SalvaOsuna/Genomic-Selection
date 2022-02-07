@@ -121,7 +121,7 @@ Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease
 
 : ^a^ Using 50 repetitions of 10-fold stratified cross validations per individual analysis.
 
-**Table 4**. Cross-environment predictive ability and predictive accuracy for rust pea disease across different traits and two environments using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training ^a^
+**Table 4**. Cross-environment predictive ability and predictive accuracy for rust pea disease across different traits and two environments using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training with DArT-Seq marker data set ^a^
 
 |                   |                        | P. ability |     | P. accuracy |     |
 |-------------------|------------------------|------------|-----|-------------|-----|
@@ -133,3 +133,16 @@ Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease
 | Index             | DS                     | 0.311      |     | 0.356       |     |
 
 : ^a^ For model training with DArT-seq marker data set using 50 repetitions of 10-fold stratified cross validations per individual analysis
+
+**Table 5**. Cross-environment predictive ability and predictive accuracy for rust pea disease across different traits and two environments using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training with SNP marker data set ^a^
+
+|                   |                        | P. ability |       | P. accuracy |       |
+|-------------------|------------------------|------------|-------|-------------|-------|
+| Training set (CC) | Validation set (Field) | rrBLUP     | BL    | rrBLUP      | BL    |
+| AUDPC             | DS                     | 0.218      | 0.216 | 0.250       | 0.248 |
+| IF                | DS                     | 0.252      | 0.248 | 0.289       | 0.284 |
+| IT                | DS                     | 0.253      | 0.255 | 0.309       | 0.312 |
+| DS                | DS                     | 0.260      | 0.254 | 0.280       | 0.274 |
+| Index             | DS                     | 0.307      | 0.304 | 0.352       | 0.349 |
+
+: ^a^ For model training with SNP marker data set using 50 repetitions of 10-fold stratified cross validations per individual analysis
