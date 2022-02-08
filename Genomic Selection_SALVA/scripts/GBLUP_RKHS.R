@@ -1,0 +1,222 @@
+############################################
+##                                        ##
+##          Marker x ENVironment          ##
+##                                        ##
+############################################
+
+#Box 1a. Within-Environment (i.e., stratified) GBLUP (model fitting
+library('BGLR')
+Pheno_rust <- as.matrix(read.table(file = "BLUP_GS_rust.txt", header = T)) #load phenotypes
+Pheno_rust<- mapply(Pheno_rust, FUN=as.numeric) #convert matrix to numeric
+Pheno_rust <- matrix(data=Pheno_rust, ncol=15, nrow=320) # convert matrix to numeric 2
+
+#traits:
+R19 <- 3 # choose any number in 1:ncol(Pheno_rust)
+AUDPC <- 5
+IF <- 7
+IT <- 8
+DS <- 9
+Index <- 14
+
+G <- as.matrix(read.xlsx(xlsxFile = "GenPea_SilDArT_Kinship_rust.xlsx", sheet = "Sheet 3", colNames = F)) #G matrix
+prefix <- paste(colnames(Pheno_rust)[R19],"_",sep="")
+# Fitting the model
+ETA <- list(G=list(K=G,model='RKHS'))
+fm_R19 <- BGLR(y=Pheno_rust[,R19],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+fm_AUDPC <- BGLR(y=Pheno_rust[,AUDPC],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+fm_IF <- BGLR(y=Pheno_rust[,IF],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+fm_IT <- BGLR(y=Pheno_rust[,IT],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+fm_DS <- BGLR(y=Pheno_rust[,DS],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+fm_Index <- BGLR(y=Pheno_rust[,Index],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+
+#Box 1b. Within-R19environment (i.e., stratified) GBLUP (post-hoc)
+# Extracting some estimates & predictions in R19
+fm_R19$varE # residual variance
+fm_R19$ETA[[1]]$varU # genomic variance
+cor(Pheno_rust[,R19], fm_R19$ETA[[1]]$u) #Predictive ability
+# Extracting some estimates & predictions in AUDPC
+fm_AUDPC$varE # residual variance
+fm_AUDPC$ETA[[1]]$varU # genomic variance
+cor(Pheno_rust[,AUDPC], fm_AUDPC$ETA[[1]]$u) #Predictive ability
+# Extracting some estimates & predictions in IF
+fm_IF$varE # residual variance
+fm_IF$ETA[[1]]$varU # genomic variance
+cor(Pheno_rust[,IF], fm_IF$ETA[[1]]$u) #Predictive ability
+# Extracting some estimates & predictions in IT
+fm_IT$varE # residual variance
+fm_IT$ETA[[1]]$varU # genomic variance
+cor(Pheno_rust[,IT], fm_IT$ETA[[1]]$u) #Predictive ability
+# Extracting some estimates & predictions in DS
+fm_DS$varE # residual variance
+fm_DS$ETA[[1]]$varU # genomic variance
+cor(Pheno_rust[,DS], fm_DS$ETA[[1]]$u) #Predictive ability
+# Extracting some estimates & predictions in Index
+fm_Index$varE # residual variance
+fm_Index$ETA[[1]]$varU # genomic variance
+cor(Pheno_rust[,Index], fm_Index$ETA[[1]]$u) #Predictive ability
+
+
+# Some trace plots
+varE <- scan(paste(prefix,'varE.dat',sep=''))
+plot(varE,type='o',cex=.5,col=4)
+varU <- scan(paste(prefix,'ETA_G_varU.dat',sep=''))
+plot(varU,type='o',cex=.5,col=4)
+
+#Box 2a. Across-Environment Model (model fitting)
+env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env)
+prefix <- paste(c('Across',colnames(Pheno_rust)[env],''),collapse='_')
+y <- as.vector(Pheno_rust[,env])
+# Fixed effect (env-intercepts)
+envID <- rep(env,each=nrow(Pheno_rust))
+ETA <- list(list(~factor(envID)-1,model="FIXED"))
+# Effects of markers
+G0 <- kronecker(matrix(nrow=nEnv,ncol=nEnv,1),G)
+ETA[[2]] <- list(K=G0,model='RKHS')
+# Model Fitting
+fm <- BGLR(y=y,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+#Box 2b. Across-Environment Model (post-hoc)
+# Extracting estimates of variance parameters
+fm$varE # residual variance
+fm$ETA[[2]]$varU # genomic variance
+# Predictions (this is all within training)
+tmpEnv <- 1
+plot(y[envID==env[tmpEnv]]~fm$yHat[envID==env[tmpEnv]])
+cor(y[envID==env[tmpEnv]],fm$yHat[envID==env[tmpEnv]])
+# Samples
+varE <- scan(paste(prefix,'varE.dat',sep=''))
+plot(varE,type='o',cex=.5,col=4)
+varU0 <- scan(paste(prefix,'ETA_2_varU.dat',sep=''))
+plot(varU0,type='o',cex=.5,col=4)
+
+#Box 3a. Marker-by-Environment Interaction Model (model fitting)
+env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env)
+prefix <- paste(c('MxE',colnames(Pheno_rust)[env],''),collapse='_')
+y <- as.vector(Pheno_rust[,env])
+# Fixed effect (env-intercepts)
+envID <- rep(env,each=nrow(Pheno_rust))
+ETA <- list(list(~factor(envID)-1,model="FIXED"))
+# Main effects of markers
+G0 <- kronecker(matrix(nrow=nEnv,ncol=nEnv,1),G)
+ETA[[2]] <- list(K=G0,model='RKHS')
+# Adding interaction terms
+for(i in 1:nEnv){
+  tmp <- rep(0,nEnv) ; tmp[i] <- 1
+  G1 <- kronecker(diag(tmp),G)
+  ETA[[(i+2)]] <- list(K=G1, model='RKHS')
+}
+# Model Fitting
+fm <- BGLR(y=y,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+
+   # same with loop:
+  folds=sample(1:10,size=n,replace=T)
+  yHatCV=rep(NA,n)
+
+    timeIn=proc.time()[3]
+      for(i in 1:max(folds)){
+        tst=which(folds==i)
+        yNA=y
+        yNA[tst]=NA
+        fm=BGLR(y=yNA,ETA=ETA,nIter=6000,burnIn=1000)
+        yHatCV[tst]=fm$yHat[tst]
+      }
+    proc.time()[3]-timeIn
+
+#Box 3b. Marker-by-Environment Interaction Model (post-hoc)
+# Extracting estimates of variance parameters
+fm$varE # residual variance
+fm$ETA[[2]]$varU # genomic variance (main effect)
+vGInt <- rep(NA,nEnv)
+for(i in 1:nEnv){ # interaction variances
+  vGInt[i] <- fm$ETA[[(i+2)]]$varU
+}
+vGInt
+# Predictions (this is all within training)
+tmpEnv <- 2
+plot(y[envID==env[tmpEnv]]~fm$yHat[envID==env[tmpEnv]])
+cor(y[envID==env[tmpEnv]],fm$yHat[envID==env[tmpEnv]])
+
+# Samples
+varE <- scan(paste(prefix,'varE.dat',sep=''))
+plot(varE,type='o',cex=.5,col=4)
+varU0 <- scan(paste(prefix,'ETA_2_varU.dat',sep=''))
+plot(varU0,type='o',cex=.5,col=4)
+
+varU1 <- matrix(nrow=length(varU0),ncol=nEnv,NA)
+for(i in 1:nEnv){
+  varU1[,i] <- scan(paste(prefix,'ETA_',i+2,'_varU.dat',sep=''))
+}
+
+tmpEnv <- 1
+plot(varU1[,tmpEnv],type='o',col=4,cex=.5)
+
+#Box 4a. Creating a Testing Sets for CV1
+env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env)
+Y <- Pheno_rust[,env]
+n <- nrow(Y)
+percTST<-0.3
+nTST <- round(percTST*n)
+tst<-sample(1:n,size=nTST,replace=FALSE)
+YNA <- Y
+YNA[tst,]<-NA
+
+#Box 4b. Creating a Testing Sets for CV2
+env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env)
+Y <- Pheno_rust[,env]
+n <- nrow(Y)
+percTST<-0.3
+nTST <- round(percTST*n)
+nNA <- nEnv*nTST
+if(nNA<n){ indexNA <- sample(1:n,nNA,replace=FALSE) }
+if(nNA>=n){
+  nRep <- floor(nNA/n)
+  remain <- sample(1:n,nNA%%n,replace=FALSE)
+  a0 <- sample(1:n,n,replace=FALSE)
+  indexNA <- rep(a0,nRep)
+  if(length(remain)>0){
+    a1 <- floor(length(indexNA)/nTST)*nTST
+    a2 <- nNA - a1 - length(remain)
+    bb <- sample(a0[!a0%in%remain],a2,replace=FALSE)
+    noInIndexNA <- c(rep(a0,nRep-1),a0[!a0%in%bb])
+    indexNA <- c(noInIndexNA,bb,remain)
+  }
+}
+indexEnv <- rep(1:nEnv,each=nTST)
+YNA <- Y
+for(j in 1:nEnv) YNA[indexNA[indexEnv==j],j] <- NA
+
+#Box 5. Fitting Models to TRN-TST Partitions (continues from Box 4b)
+## Single environments models #####################################
+YHatSE <- matrix(nrow=nrow(Y),ncol=ncol(Y),NA)
+ETA <- list(G=list(K=G,model='RKHS'))
+for(i in 1:nEnv){
+  prefix <- paste(colnames(Y)[i],"_",sep="")
+  fm <-BGLR(y=YNA[,i],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+  YHatSE[,i] <- fm$yHat
+}
+## Across environment model (ignoring GxE) #######################
+yNA <- as.vector(YNA)
+# Fixed effect (env-intercepts)
+envID <- rep(env,each=nrow(Y))
+ETA <- list(list(~factor(envID)-1,model="FIXED"))
+# Main effects of markers
+G0 <- kronecker(matrix(nrow=nEnv,ncol=nEnv,1),G)
+ETA[[2]] <- list(K=G0,model='RKHS')
+# Model Fitting
+prefix <- paste(c('Across',colnames(Y),''),collapse='_')
+fm <- BGLR(y=yNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+YHatAcross <- matrix(fm$yHat,ncol=nEnv)
+cor(YHatSE)
+## MxE Interaction Model #########################################
+# Adding interaction terms
+for(i in 1:nEnv){
+  tmp <- rep(0,nEnv) ; tmp[i] <- 1; G1 <- kronecker(diag(tmp),G)
+  ETA[[(i+2)]] <- list(K=G1,model='RKHS')
+}
+# Model Fitting
+prefix <- paste(c('MxE',colnames(Y),''),collapse='_')
+fm <- BGLR(y=yNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+YHatInt <- matrix(fm$yHat,ncol=nEnv)
