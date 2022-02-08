@@ -69,9 +69,9 @@
                maxiter = 100 #the maximum number of EM steps to take
                )$x
     #Sustitute the values to get -1, 0, 1:
-    DArT_noNA[DArT_noNA >= 0.5] <- 1
-    DArT_noNA[DArT_noNA <= -0.5] <- -1
-    DArT_noNA[DArT_noNA < 0.5 & DArT_noNA > -0.5]<- 0
+    DArT_rust_SVDI[DArT_rust_SVDI >= 0.5] <- 1
+    DArT_rust_SVDI[DArT_rust_SVDI <= -0.5] <- -1
+    DArT_rust_SVDI[DArT_rust_SVDI < 0.5 & DArT_rust_SVDI > -0.5]<- 0
     
     write.table(DArT_noNA, "DArT_noNA_SVDmethod.txt",sep= "\t" )
     

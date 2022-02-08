@@ -146,3 +146,16 @@ Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease
 | Index             | DS                     | 0.307      | 0.304 | 0.352       | 0.349 |
 
 : ^a^ For model training with SNP marker data set using 50 repetitions of 10-fold stratified cross validations per individual analysis
+
+**Table 6**. Cross-environment predictive ability and predictive accuracy for rust pea disease across different traits and two environments using Ridge regression BLUP (rrBLUP) model training with DArT marker data set ^a^ [CV2]
+
+|                   |                        | P. ability |     | P. accuracy |     |
+|-------------------|------------------------|------------|-----|-------------|-----|
+| Training set (CC) | Validation set (Field) | rrBLUP     | BL  | rrBLUP      | BL  |
+| AUDPC             | DS                     | 0.212      |     |             |     |
+| IF                | DS                     | 0.231      |     |             |     |
+| IT                | DS                     | 0.231      |     |             |     |
+| DS                | DS                     | 0.253      |     |             |     |
+| Index             | DS                     | 0.295      |     |             |     |
+
+: ^a^ For model training with SNP marker data set using 50 repetitions of 10-fold stratified cross validations per individual analysis

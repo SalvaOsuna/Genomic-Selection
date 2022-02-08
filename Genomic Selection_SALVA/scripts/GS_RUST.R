@@ -5,7 +5,7 @@
 ############################################
 
 # 1) Load Genotypic data, DArT markers:
-    DArT <- as.matrix(read.table("data/DArT.txt", header = T))
+    DArT <- as.matrix(read.table("Dart.txt", header = T))
     DArT[DArT == 0] <- -1 #change 0 to -1
     DArT_rust <- DArT[-c(288, 294, 300, 320, 325), ] #Estas entradas no están evaluadas en CC así que las quito
     ##rrBLUP necesita la matriz en formato {-1, 0, 1} así que cambio los 0 por -1:
@@ -36,7 +36,7 @@
       )$x
 
 # 4) Input phenotype. Traits in a matrix format. rows = GEN; column = trait
-    Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "data/BLUP_field.xlsx", sep= "\t", rowNames = F, colNames = T, sheet = "BLUP_GS_rust"))
+    Pheno_rust <- as.matrix(read.xlsx(xlsxFile = "BLUP_field.xlsx", sep= "\t", rowNames = F, colNames = T, sheet = "BLUP_GS_rust"))
     head(Pheno_rust)
     dim(Pheno_rust)
     dim(DArT_rust_SVDI)
@@ -425,7 +425,7 @@
   Pheno_rust_df <- as.data.frame(Pheno_rust)
   head(Pheno_rust_df)
   #parece que hay que dejar los datos en formato {2, 1, 0}
-  DArT <- as.matrix(read.table("data/DArT.txt", header = T))
+  DArT <- as.matrix(read.table("DArT.txt", header = T))
   DArT[DArT == 1] <- 2 #change 1 to 2
   DArT_GROAN <- DArT[-c(288, 294, 300, 320, 325), ] #Estas entradas no están evaluadas en CC así que las quito
   DArT_GROAN_SVDI <-
@@ -435,15 +435,16 @@
                maxiter = 100 #the maximum number of EM steps to take
     )$x
   
-      DArT_GROAN_SVDI[DArT_GROAN_SVDI >= 1.5] <- 2
-      DArT_GROAN_SVDI[DArT_GROAN_SVDI <= 0.5] <- 0
-      DArT_GROAN_SVDI[DArT_GROAN_SVDI > 0.5 & DArT_GROAN_SVDI < 1.5]<- 1
+      DArT_rust_SVDI[DArT_rust_SVDI >= 1.5] <- 2
+      DArT_rust_SVDI[DArT_rust_SVDI <= 0.5] <- 0
+      DArT_rust_SVDI[DArT_rust_SVDI > 0.5 & DArT_rust_SVDI < 1.5]<- 1
   
   DArT_GROAN_SVDI <- as.data.frame(DArT_GROAN_SVDI)
+  DArT_rust_SVDI <- as.matrix(read.table("DArT_noNA_SVDmethod.txt",header = T))
     #creating a dataset for DS
     nds.no_noise.DS <- createNoisyDataset(
       name = 'PEA DS, no noise',
-      genotypes = DArT_GROAN_SVDI, 
+      genotypes = DArT_rust_SVDI, 
       phenotypes = Pheno_rust_df$DS)
     #create wb
     wb <- createWorkbench(regressor = phenoRegressor.rrBLUP, 
@@ -466,7 +467,7 @@
     #I_cc_FAI
     nds.no_noise.FAI2<- createNoisyDataset(
       name = 'PEA FAI2, no noise',
-      genotypes = DArT_GROAN_SVDI, 
+      genotypes = DArT_rust_SVDI, 
       phenotypes = Pheno_rust_df$I_cc_FAI)
     
     #I_cc_SH
@@ -546,7 +547,7 @@
     #R19
     nds.no_noise.R19<- createNoisyDataset(
       name = 'R19, no noise',
-      genotypes = DArT_GROAN_SVDI, 
+      genotypes = DArT_rust_SVDI, 
       phenotypes = Pheno_rust_df$R19)
     #R20
     nds.no_noise.R20<- createNoisyDataset(
@@ -587,7 +588,7 @@
     #AUDPC
     nds.no_noise.AUDPC<- createNoisyDataset(
       name = 'AUDPC, no noise',
-      genotypes = DArT_GROAN_SVDI, 
+      genotypes = DArT_rust_SVDI, 
       phenotypes = Pheno_rust_df$AUDPC)
     res.AUDPC = GROAN.run(nds = nds.no_noise.AUDPC, wb = wb3, nds.test = 
                       list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
@@ -601,14 +602,14 @@
     #IF
     nds.no_noise.IF<- createNoisyDataset(
       name = 'IF, no noise',
-      genotypes = DArT_GROAN_SVDI, 
+      genotypes = DArT_rust_SVDI, 
       phenotypes = Pheno_rust_df$IF)
     res.IF = GROAN.run(nds = nds.no_noise.IF, wb = wb3, nds.test = 
                             list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
     #IT
     nds.no_noise.IT<- createNoisyDataset(
       name = 'IT, no noise',
-      genotypes = DArT_GROAN_SVDI, 
+      genotypes = DArT_rust_SVDI, 
       phenotypes = Pheno_rust_df$IT)
     res.IT = GROAN.run(nds = nds.no_noise.IT, wb = wb3, nds.test = 
                             list(nds.no_noise.R18, nds.no_noise.R19, nds.no_noise.R20))
@@ -858,3 +859,154 @@ predictorsSNP %>%
   summarise("meanPA" = mean(pearson))
 
 write.xlsx(predictorsSNP, "results/field&CC_traits_predictorsSNP.xlsx")
+
+#Cual es el mejor predictor sobre DS2019 de los datos de cámara y campo con los marcadores DArT?
+res.AUDPC = GROAN.run(nds = nds.no_noise.AUDPC, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.AUDPC[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.IF = GROAN.run(nds = nds.no_noise.IF, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.IF[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.IT = GROAN.run(nds = nds.no_noise.IT, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.IT[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.DS = GROAN.run(nds = nds.no_noise.DS, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.DS[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.I_cc_FAI = GROAN.run(nds = nds.no_noise.I_cc_FAI, wb = wb5, nds.test = nds.no_noise.R19)
+print(res.I_cc_FAI[,c('dataset.train', 'dataset.test', 'pearson')])
+
+predictorsDArT <- rbind(res.AUDPC,res.IF,res.IT,res.DS,res.I_cc_FAI)
+predictorsDArT$pearson <- abs(predictorsDArT$pearson)
+head(predictorsDArT)
+plotResult(predictorsDArT, variable = "pearson")
+predictorsDArT %>%
+  group_by(dataset.train, dataset.test) %>%
+  summarise("meanPA" = mean(pearson))
+
+write.xlsx(predictorsDArT, "results/field&CC_traits_predictorsDArT.xlsx")
+
+#Hasta ahora tengo los resultados del escenario [CV1], rehacer en el escenario [CV2]: new env new lines:
+  # Define the training (90 % = 224 genotypes) and validation (10 % = 96 genotypes) populations
+train <- as.matrix(sample(1:320, 288))
+test <- setdiff(1:320, train)      
+
+# Pheno_train and m_train are the phenotype and marker matrices for the values in the training population
+# Pheno_valid and m_valid will be the validation populations
+Pheno_train = Pheno_rust_df[train, ]
+m_train = DArT_rust_SVDI[train, ]
+
+Pheno_valid = Pheno_rust_df[test, ]
+m_valid = DArT_rust_SVDI[test, ]
+
+traits = 1
+cycles = 500
+
+AUDPC_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+
+  AUDPC = (Pheno_train[, 5])
+  AUDPC_answer <- mixed.solve(AUDPC, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = AUDPC_answer$u
+  e = as.matrix(u)
+  pred_AUDPC_valid = m_valid %*% e
+  pred_AUDPC = pred_AUDPC_valid[, 1] + AUDPC_answer$beta  
+  pred_AUDPC
+  AUDPC_R19_valid = as.numeric(Pheno_valid[, 3])
+  AUDPC_R19_accuracy[r, 1] <-  cor(pred_AUDPC_valid, AUDPC_R19_valid, use = "complete")
+}
+mean(AUDPC_R19_accuracy)
+
+DS_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  DS = (Pheno_train[, 9])
+  DS_answer <- mixed.solve(DS, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = DS_answer$u
+  e = as.matrix(u)
+  pred_DS_valid = m_valid %*% e
+  pred_DS = pred_DS_valid[, 1] + DS_answer$beta  
+  pred_DS
+  DS_R19_valid = as.numeric(Pheno_valid[, 3])
+  DS_R19_accuracy[r, 1] <-  cor(pred_DS_valid, DS_R19_valid, use = "complete")
+}
+mean(DS_R19_accuracy)
+
+IF_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  IF = (Pheno_train[, 7])
+  IF_answer <- mixed.solve(IF, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = IF_answer$u
+  e = as.matrix(u)
+  pred_IF_valid = m_valid %*% e
+  pred_IF = pred_IF_valid[, 1] + IF_answer$beta  
+  pred_IF
+  IF_R19_valid = as.numeric(Pheno_valid[, 3])
+  IF_R19_accuracy[r, 1] <-  cor(pred_IF_valid, IF_R19_valid, use = "complete")
+}
+mean(IF_R19_accuracy)
+
+IT_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  IT = (Pheno_train[, 8])
+  IT_answer <- mixed.solve(IT, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = IT_answer$u
+  e = as.matrix(u)
+  pred_IT_valid = m_valid %*% e
+  pred_IT = pred_IT_valid[, 1] + IT_answer$beta  
+  pred_IT
+  IT_R19_valid = as.numeric(Pheno_valid[, 3])
+  IT_R19_accuracy[r, 1] <-  cor(pred_IT_valid, IT_R19_valid, use = "complete")
+}
+mean(IT_R19_accuracy)
+
+Index_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  Index = (Pheno_train[, 14])
+  Index_answer <- mixed.solve(Index, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = Index_answer$u
+  e = as.matrix(u)
+  pred_Index_valid = m_valid %*% e
+  pred_Index = pred_Index_valid[, 1] + Index_answer$beta  
+  pred_Index
+  Index_R19_valid = as.numeric(Pheno_valid[, 3])
+  Index_R19_accuracy[r, 1] <-  cor(pred_Index_valid, Index_R19_valid, use = "complete")
+}
+mean(Index_R19_accuracy)
+
+CV2_DArT_rrBLUP <- cbind(AUDPC_R19_accuracy,DS_R19_accuracy,IF_R19_accuracy,IT_R19_accuracy,Index_R19_accuracy, )
+CV2_DArT_rrBLUP <- data.frame(CV2_DArT_rrBLUP)
+write.xlsx(x = CV2_DArT_rrBLUP, file = "results/CV2_DArT_rrBLUP.xlsx", overwrite = T)
