@@ -263,14 +263,14 @@ Y <- Pheno_rust[,env]
 n <- nrow(as.matrix(Y))
 percTST<-0.1
 nTST <- round(percTST*n)
-rep = 50
+rep = 20
 mymat_R19 <- matrix(nrow = rep, ncol = 1)
-
+prefix_R19 <- paste(colnames(Pheno_rust)[R19],"_",sep="")
 for (i in 1:rep) {
   tst<-sample(1:n,size=nTST,replace=FALSE)
   YNA <- Y
   YNA[tst]<-NA
-  fm_R19_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+  fm_R19_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_R19) 
   mymat_R19[i,] <- cor(Pheno_rust[tst,R19], fm_R19_CV1$yHat[tst])
 }
 }
@@ -283,14 +283,14 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 50
+  rep = 20
   mymat_AUDPC <- matrix(nrow = rep, ncol = 1)
-  
+  prefix_AUDPC <- paste(colnames(Pheno_rust)[AUDPC],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_AUDPC_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+    fm_AUDPC_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_AUDPC) 
     mymat_AUDPC[i,] <- cor(Pheno_rust[tst,AUDPC], fm_AUDPC_CV1$yHat[tst])
   }
 }
@@ -303,14 +303,14 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 50
+  rep = 20
   mymat_IF <- matrix(nrow = rep, ncol = 1)
-  
+  prefix_IF <- paste(colnames(Pheno_rust)[IF],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_IF_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+    fm_IF_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_IF) 
     mymat_IF[i,] <- cor(Pheno_rust[tst,IF], fm_IF_CV1$yHat[tst])
   }
 }
@@ -323,14 +323,14 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 50
+  rep = 20
   mymat_IT <- matrix(nrow = rep, ncol = 1)
-  
+  prefix_IT <- paste(colnames(Pheno_rust)[IT],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_IT_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+    fm_IT_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_IT) 
     mymat_IT[i,] <- cor(Pheno_rust[tst,IT], fm_IT_CV1$yHat[tst])
   }
 }
@@ -343,7 +343,7 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 50
+  rep = 20
   mymat_DS <- matrix(nrow = rep, ncol = 1)
   
   for (i in 1:rep) {
@@ -363,14 +363,14 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 50
+  rep = 20
   mymat_Index <- matrix(nrow = rep, ncol = 1)
-  
+  prefix_Index <- paste(colnames(Pheno_rust)[Index],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_Index_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+    fm_Index_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_Index) 
     mymat_Index[i,] <- cor(Pheno_rust[tst,Index], fm_Index_CV1$yHat[tst])
   }
 }
