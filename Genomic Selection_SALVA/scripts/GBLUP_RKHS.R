@@ -263,14 +263,14 @@ Y <- Pheno_rust[,env]
 n <- nrow(as.matrix(Y))
 percTST<-0.1
 nTST <- round(percTST*n)
-rep = 20
+rep = 10
 mymat_R19 <- matrix(nrow = rep, ncol = 1)
 prefix_R19 <- paste(colnames(Pheno_rust)[R19],"_",sep="")
 for (i in 1:rep) {
   tst<-sample(1:n,size=nTST,replace=FALSE)
   YNA <- Y
   YNA[tst]<-NA
-  fm_R19_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_R19) 
+  fm_R19_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=3200,burnIn=600,saveAt=prefix_R19) 
   mymat_R19[i,] <- cor(Pheno_rust[tst,R19], fm_R19_CV1$yHat[tst])
 }
 }
