@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
     -   the predictive ability over field (new environment) testing the same lines used for training in controlled condition (old environment) [CV1].
 
-3.  Is the predictive ability, in every case, affected by the marker type?. i.e. SNPs or DArT-seq?
+3.  Is the predictive ability, in G-bLUP model case, affected by the marker per environment effect?
 
 # Material and Methods
 
@@ -114,22 +114,22 @@ Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease
 |          |        | CC    |       |       |       |       | Field |       |
 |----------|--------|-------|-------|-------|-------|-------|-------|-------|
 | Method   | Model  | AUDPC | IF    | IT    | DS    | Index | DS    | Mean  |
-| SNP-BLUP | rrBLUP | 0.602 | 0.568 | 0.579 | 0.603 | 0.627 | 0.615 | 0.599 |
-| SNP-BLUP | BL     | 0.602 | 0.569 | 0.571 | 0.606 | 0.630 | 0.611 | 0.598 |
+| SNP-BLUP | rrBLUP | 0.602 | 0.572 | 0.579 | 0.601 | 0.627 | 0.615 | 0.599 |
+| SNP-BLUP | BL     | 0.602 | 0.569 | 0.571 | 0.604 | 0.630 | 0.611 | 0.598 |
 | G-BLUP   | RKHS   | 0.885 | 0.858 | 0.921 | 0.889 | 0.912 | 0.882 | 0.891 |
 
 : ^a^ Using 50 repetitions of 10-fold stratified cross validations per individual analysis.
 
 **Table 4**. Cross-environment predictive ability and predictive accuracy for rust pea disease across different traits and two environments using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training with DArT-Seq marker data set ^a^
 
-|                   |                        | P. ability |     | P. accuracy |     |
-|-------------------|------------------------|------------|-----|-------------|-----|
-| Training set (CC) | Validation set (Field) | rrBLUP     | BL  | rrBLUP      | BL  |
-| AUDPC             | DS                     | 0.222      |     | 0.255       |     |
-| IF                | DS                     | 0.257      |     | 0.295       |     |
-| IT                | DS                     | 0.262      |     | 0.320       |     |
-| DS                | DS                     | 0.263      |     | 0.284       |     |
-| Index             | DS                     | 0.311      |     | 0.356       |     |
+|                   |                        | P. ability |       | P. accuracy |     |
+|-------------------|------------------------|------------|-------|-------------|-----|
+| Training set (CC) | Validation set (Field) | rrBLUP     | BL    | rrBLUP      | BL  |
+| AUDPC             | DS                     | 0.222      | 0.221 | 0.255       |     |
+| IF                | DS                     | 0.257      | 0.256 | 0.295       |     |
+| IT                | DS                     | 0.262      | 0.265 | 0.320       |     |
+| DS                | DS                     | 0.263      | 0.261 | 0.284       |     |
+| Index             | DS                     | 0.311      | 0.313 | 0.356       |     |
 
 : ^a^ For model training with DArT-seq marker data set using 50 repetitions of 10-fold stratified cross validations per individual analysis
 
