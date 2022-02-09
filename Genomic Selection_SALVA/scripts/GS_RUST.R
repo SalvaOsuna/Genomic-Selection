@@ -435,9 +435,9 @@
                maxiter = 100 #the maximum number of EM steps to take
     )$x
   
-      DArT_rust_SVDI[DArT_rust_SVDI >= 1.5] <- 2
-      DArT_rust_SVDI[DArT_rust_SVDI <= 0.5] <- 0
-      DArT_rust_SVDI[DArT_rust_SVDI > 0.5 & DArT_rust_SVDI < 1.5]<- 1
+  DArT_GROAN_SVDI[DArT_GROAN_SVDI >= 1.5] <- 2
+  DArT_GROAN_SVDI[DArT_GROAN_SVDI <= 0.5] <- 0
+  DArT_GROAN_SVDI[DArT_GROAN_SVDI > 0.5 & DArT_GROAN_SVDI < 1.5]<- 1
   
   DArT_GROAN_SVDI <- as.data.frame(DArT_GROAN_SVDI)
   DArT_rust_SVDI <- as.matrix(read.table("DArT_noNA_SVDmethod.txt",header = T))

@@ -34,6 +34,7 @@ fm_Index <- BGLR(y=Pheno_rust[,Index],ETA=ETA,nIter=12000,burnIn=2000,saveAt=pre
 fm_R19$varE # residual variance
 fm_R19$ETA[[1]]$varU # genomic variance
 cor(Pheno_rust[,R19], fm_R19$ETA[[1]]$u) #Predictive ability
+h2=fm_R19$ETA[[1]]$varU/(fm_R19$ETA[[1]]$varU+fm_R19$varE)
 # Extracting some estimates & predictions in AUDPC
 fm_AUDPC$varE # residual variance
 fm_AUDPC$ETA[[1]]$varU # genomic variance
@@ -54,21 +55,15 @@ cor(Pheno_rust[,DS], fm_DS$ETA[[1]]$u) #Predictive ability
 fm_Index$varE # residual variance
 fm_Index$ETA[[1]]$varU # genomic variance
 cor(Pheno_rust[,Index], fm_Index$ETA[[1]]$u) #Predictive ability
-
-
-# Some trace plots
-varE <- scan(paste(prefix,'varE.dat',sep=''))
-plot(varE,type='o',cex=.5,col=4)
-varU <- scan(paste(prefix,'ETA_G_varU.dat',sep=''))
-plot(varU,type='o',cex=.5,col=4)
+h2=fm_Index$ETA[[1]]$varU/(fm_Index$ETA[[1]]$varU+fm_Index$varE)
 
 #Box 2a. Across-Environment Model (model fitting)
-env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
-nEnv <- length(env)
-prefix <- paste(c('Across',colnames(Pheno_rust)[env],''),collapse='_')
-y <- as.vector(Pheno_rust[,env])
+env_2 <- c(AUDPC,R19) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env_2)
+prefix <- paste(c('Across',colnames(Pheno_rust)[env_2],''),collapse='_')
+y <- as.vector(Pheno_rust[,env_2])
 # Fixed effect (env-intercepts)
-envID <- rep(env,each=nrow(Pheno_rust))
+envID <- rep(env_2,each=nrow(Pheno_rust))
 ETA <- list(list(~factor(envID)-1,model="FIXED"))
 # Effects of markers
 G0 <- kronecker(matrix(nrow=nEnv,ncol=nEnv,1),G)
@@ -80,9 +75,9 @@ fm <- BGLR(y=y,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
 fm$varE # residual variance
 fm$ETA[[2]]$varU # genomic variance
 # Predictions (this is all within training)
-tmpEnv <- 1
-plot(y[envID==env[tmpEnv]]~fm$yHat[envID==env[tmpEnv]])
-cor(y[envID==env[tmpEnv]],fm$yHat[envID==env[tmpEnv]])
+tmpEnv <- 2
+plot(y[envID==env_2[tmpEnv]]~fm$yHat[envID==env_2[tmpEnv]])
+cor(y[envID==env_2[tmpEnv]],fm$yHat[envID==env_2[tmpEnv]])
 # Samples
 varE <- scan(paste(prefix,'varE.dat',sep=''))
 plot(varE,type='o',cex=.5,col=4)
@@ -90,12 +85,12 @@ varU0 <- scan(paste(prefix,'ETA_2_varU.dat',sep=''))
 plot(varU0,type='o',cex=.5,col=4)
 
 #Box 3a. Marker-by-Environment Interaction Model (model fitting)
-env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
-nEnv <- length(env)
-prefix <- paste(c('MxE',colnames(Pheno_rust)[env],''),collapse='_')
-y <- as.vector(Pheno_rust[,env])
+env_2 <- c(AUDPC,R19) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env_2)
+prefix <- paste(c('MxE',colnames(Pheno_rust)[env_2],''),collapse='_')
+y <- as.vector(Pheno_rust[,env_2])
 # Fixed effect (env-intercepts)
-envID <- rep(env,each=nrow(Pheno_rust))
+envID <- rep(env_2,each=nrow(Pheno_rust))
 ETA <- list(list(~factor(envID)-1,model="FIXED"))
 # Main effects of markers
 G0 <- kronecker(matrix(nrow=nEnv,ncol=nEnv,1),G)
@@ -134,8 +129,8 @@ for(i in 1:nEnv){ # interaction variances
 vGInt
 # Predictions (this is all within training)
 tmpEnv <- 2
-plot(y[envID==env[tmpEnv]]~fm$yHat[envID==env[tmpEnv]])
-cor(y[envID==env[tmpEnv]],fm$yHat[envID==env[tmpEnv]])
+plot(y[envID==env_2[tmpEnv]]~fm$yHat[envID==env_2[tmpEnv]])
+cor(y[envID==env_2[tmpEnv]],fm$yHat[envID==env_2[tmpEnv]])
 
 # Samples
 varE <- scan(paste(prefix,'varE.dat',sep=''))
@@ -148,26 +143,54 @@ for(i in 1:nEnv){
   varU1[,i] <- scan(paste(prefix,'ETA_',i+2,'_varU.dat',sep=''))
 }
 
-tmpEnv <- 1
+tmpEnv <- 2
 plot(varU1[,tmpEnv],type='o',col=4,cex=.5)
 
 #Box 4a. Creating a Testing Sets for CV1
-env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
-nEnv <- length(env)
-Y <- Pheno_rust[,env]
+env_2 <- c(AUDPC,R19) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env_2)
+Y <- Pheno_rust[,env_2]
 n <- nrow(Y)
-percTST<-0.3
+percTST<-0.1
 nTST <- round(percTST*n)
 tst<-sample(1:n,size=nTST,replace=FALSE)
 YNA <- Y
 YNA[tst,]<-NA
 
+  #Vamos a usarlo, primero con single ENV
+  YHatSE <- matrix(nrow=nrow(Y),ncol=ncol(Y),NA)
+  ETA <- list(G=list(K=G,model='RKHS'))
+    for(i in 1:nEnv){
+      prefix <- paste(colnames(Y)[i],"_",sep="")
+      fm <-BGLR(y=YNA[,i],ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+      YHatSE[,i] <- fm$yHat
+    } 
+  
+  ## Across environment model (ignoring GxE) #######################
+  yNA <- as.vector(YNA)
+  # Fixed effect (env-intercepts)
+  envID <- rep(env_2,each=nrow(Y))
+  ETA <- list(list(~factor(envID)-1,model="FIXED"))
+  # Main effects of markers
+  G0 <- kronecker(matrix(nrow=nEnv,ncol=nEnv,1),G)
+  ETA[[2]] <- list(K=G0,model='RKHS')
+  # Model Fitting
+  prefix <- paste(c('Across',colnames(Y),''),collapse='_')
+  fm <- BGLR(y=yNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix)
+  YHatAcross <- matrix(fm$yHat,ncol=nEnv)
+  cor(YHatAcross)
+
+
+
+
+
+
 #Box 4b. Creating a Testing Sets for CV2
-env <- c(R19,AUDPC) # choose any set of environments from 1:ncol(Y)
-nEnv <- length(env)
-Y <- Pheno_rust[,env]
+env_2 <- c(AUDPC,R19) # choose any set of environments from 1:ncol(Y)
+nEnv <- length(env_2)
+Y <- Pheno_rust[,env_2]
 n <- nrow(Y)
-percTST<-0.3
+percTST<-0.1
 nTST <- round(percTST*n)
 nNA <- nEnv*nTST
 if(nNA<n){ indexNA <- sample(1:n,nNA,replace=FALSE) }

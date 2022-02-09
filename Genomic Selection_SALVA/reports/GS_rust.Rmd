@@ -111,17 +111,12 @@ Table 2. Phenotypic ($r$) and genetic correlation ($r_{g}$) for rust pea disease
 
 **Table 3**. Intra-environment predictive ability for rust pea disease in two environment with their traits evaluated using Ridge regression BLUP (rrBLUP) or Bayesian Lasso (BL) model training using a SNP or DArT-Seq marker data set ^a^
 
-+----------+--------+-------+-------+-------+-------+-------+-------+-------+
 |          |        | CC    |       |       |       |       | Field |       |
-+==========+========+=======+=======+=======+=======+=======+=======+=======+
+|----------|--------|-------|-------|-------|-------|-------|-------|-------|
 | Method   | Model  | AUDPC | IF    | IT    | DS    | Index | DS    | Mean  |
-+----------+--------+-------+-------+-------+-------+-------+-------+-------+
 | SNP-BLUP | rrBLUP | 0.602 | 0.568 | 0.579 | 0.603 | 0.627 | 0.615 | 0.599 |
-+----------+--------+-------+-------+-------+-------+-------+-------+-------+
 | SNP-BLUP | BL     | 0.602 | 0.569 | 0.571 | 0.606 | 0.630 | 0.611 | 0.598 |
-+----------+--------+-------+-------+-------+-------+-------+-------+-------+
 | G-BLUP   | RKHS   | 0.885 | 0.858 | 0.921 | 0.889 | 0.912 | 0.882 | 0.891 |
-+----------+--------+-------+-------+-------+-------+-------+-------+-------+
 
 : ^a^ Using 50 repetitions of 10-fold stratified cross validations per individual analysis.
 
