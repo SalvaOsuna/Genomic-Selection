@@ -263,18 +263,18 @@ Y <- Pheno_rust[,env]
 n <- nrow(as.matrix(Y))
 percTST<-0.1
 nTST <- round(percTST*n)
-rep = 10
+rep = 50
 mymat_R19 <- matrix(nrow = rep, ncol = 1)
 prefix_R19 <- paste(colnames(Pheno_rust)[R19],"_",sep="")
 for (i in 1:rep) {
   tst<-sample(1:n,size=nTST,replace=FALSE)
   YNA <- Y
   YNA[tst]<-NA
-  fm_R19_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=3200,burnIn=600,saveAt=prefix_R19) 
+  fm_R19_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_R19, verbose = F) 
   mymat_R19[i,] <- cor(Pheno_rust[tst,R19], fm_R19_CV1$yHat[tst])
 }
 }
-
+mean(mymat_R19)
 #Single ENV AUDPC with NA [CV0]:
 {
   env <- AUDPC # choose any set of environments from 1:ncol(Y)
@@ -283,18 +283,18 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 20
+  rep = 50
   mymat_AUDPC <- matrix(nrow = rep, ncol = 1)
   prefix_AUDPC <- paste(colnames(Pheno_rust)[AUDPC],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_AUDPC_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_AUDPC) 
+    fm_AUDPC_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_AUDPC, verbose = F) 
     mymat_AUDPC[i,] <- cor(Pheno_rust[tst,AUDPC], fm_AUDPC_CV1$yHat[tst])
   }
 }
-
+mean(mymat_AUDPC)
 #Single ENV IF with NA [CV0]:
 {
   env <- IF # choose any set of environments from 1:ncol(Y)
@@ -303,18 +303,18 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 20
+  rep = 50
   mymat_IF <- matrix(nrow = rep, ncol = 1)
   prefix_IF <- paste(colnames(Pheno_rust)[IF],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_IF_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_IF) 
+    fm_IF_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_IF, verbose = F) 
     mymat_IF[i,] <- cor(Pheno_rust[tst,IF], fm_IF_CV1$yHat[tst])
   }
 }
-
+mean(mymat_IF)
 #Single ENV IT with NA [CV0]:
 {
   env <- IT # choose any set of environments from 1:ncol(Y)
@@ -323,18 +323,18 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 20
+  rep = 50
   mymat_IT <- matrix(nrow = rep, ncol = 1)
   prefix_IT <- paste(colnames(Pheno_rust)[IT],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_IT_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_IT) 
+    fm_IT_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_IT, verbose = F) 
     mymat_IT[i,] <- cor(Pheno_rust[tst,IT], fm_IT_CV1$yHat[tst])
   }
 }
-
+mean(mymat_IT)
 #Single ENV DS with NA [CV0]:
 {
   env <- DS # choose any set of environments from 1:ncol(Y)
@@ -343,18 +343,18 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 20
+  rep = 50
   mymat_DS <- matrix(nrow = rep, ncol = 1)
-  
+  prefix_DS <- paste(colnames(Pheno_rust)[DS],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_DS_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix) 
+    fm_DS_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_DS, verbose = F) 
     mymat_DS[i,] <- cor(Pheno_rust[tst,DS], fm_DS_CV1$yHat[tst])
   }
 }
-
+mean(mymat_DS)
 #Single ENV Index with NA [CV0]:
 {
   env <- Index # choose any set of environments from 1:ncol(Y)
@@ -363,24 +363,21 @@ for (i in 1:rep) {
   n <- nrow(as.matrix(Y))
   percTST<-0.1
   nTST <- round(percTST*n)
-  rep = 20
+  rep = 50
   mymat_Index <- matrix(nrow = rep, ncol = 1)
   prefix_Index <- paste(colnames(Pheno_rust)[Index],"_",sep="")
   for (i in 1:rep) {
     tst<-sample(1:n,size=nTST,replace=FALSE)
     YNA <- Y
     YNA[tst]<-NA
-    fm_Index_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_Index) 
+    fm_Index_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_Index, verbose = F) 
     mymat_Index[i,] <- cor(Pheno_rust[tst,Index], fm_Index_CV1$yHat[tst])
   }
 }
+mean(mymat_Index)
+
 GBLUP_singlENV <- cbind(mymat_R19, mymat_AUDPC, mymat_IF, mymat_IT, mymat_DS, mymat_Index)
-
-
-
-
-
-
+write.xlsx(GBLUP_singlENV, "GBLUP_singlENV.xlsx")
 
 #Across ENV (CC -AUDPC- and R19 -DS-)####
 #Across-Environment Model (model fitting)
