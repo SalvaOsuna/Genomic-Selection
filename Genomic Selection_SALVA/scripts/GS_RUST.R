@@ -441,7 +441,16 @@
   
   DArT_GROAN_SVDI <- as.data.frame(DArT_GROAN_SVDI)
   DArT_rust_SVDI <- as.matrix(read.table("DArT_noNA_SVDmethod.txt",header = T))
-    #creating a dataset for DS
+    #creating a dataset for Rust (3fields)
+  Pheno_rust_df$Rust <- as.numeric(Pheno_rust_df$Rust)
+  nds.no_noise.Rust <- createNoisyDataset(
+      name = 'PEA Rust field',
+      genotypes = DArT_GROAN_SVDI, 
+      phenotypes = Pheno_rust_df$Rust)
+  res.Rust <- GROAN.run(nds.no_noise.Rust, wb5)
+  plot.Resuts(res.Rust)  
+  
+  #creating a dataset for DS
     nds.no_noise.DS <- createNoisyDataset(
       name = 'PEA DS, no noise',
       genotypes = DArT_rust_SVDI, 
@@ -661,6 +670,7 @@
       type = 'BL'
     )
     print(wb5)
+    
     dwb6 = addRegressor(
       wb5,
       regressor = phenoRegressor.BGLR, regressor.name = 'G-BLUP'
@@ -786,42 +796,42 @@ dim(Pheno_rust_df)
 Pheno_rust_df$AUDPC <- as.numeric(Pheno_rust_df$AUDPC)
 nds.no_noise.AUDPC<- createNoisyDataset(
   name = 'AUDPC, no noise',
-  genotypes = myG_rust, 
+  genotypes = DArT_GROAN_SVDI, 
   phenotypes = Pheno_rust_df$AUDPC)
 res.no_noise.AUDPC <- GROAN.run(nds.no_noise.AUDPC, wb5)
 
 Pheno_rust_df$IF <- as.numeric(Pheno_rust_df$IF)
 nds.no_noise.IF<- createNoisyDataset(
   name = 'IF, no noise',
-  genotypes = myG_rust, 
+  genotypes = DArT_GROAN_SVDI, 
   phenotypes = Pheno_rust_df$IF)
 res.no_noise.IF <- GROAN.run(nds.no_noise.IF, wb5)
 
 Pheno_rust_df$IT <- as.numeric(Pheno_rust_df$IT)
 nds.no_noise.IT<- createNoisyDataset(
   name = 'IT, no noise',
-  genotypes = myG_rust, 
+  genotypes = DArT_GROAN_SVDI, 
   phenotypes = Pheno_rust_df$IT)
 res.no_noise.IT <- GROAN.run(nds.no_noise.IT, wb5)
 
 Pheno_rust_df$DS <- as.numeric(Pheno_rust_df$DS)
 nds.no_noise.DS<- createNoisyDataset(
   name = 'DS, no noise',
-  genotypes = myG_rust, 
+  genotypes = DArT_GROAN_SVDI, 
   phenotypes = Pheno_rust_df$DS)
 res.no_noise.DS <- GROAN.run(nds.no_noise.DS, wb5)
 
 Pheno_rust_df$R19 <- as.numeric(Pheno_rust_df$R19)
 nds.no_noise.R19<- createNoisyDataset(
   name = 'R19, no noise',
-  genotypes = myG_rust, 
+  genotypes = DArT_GROAN_SVDI, 
   phenotypes = Pheno_rust_df$R19)
 res.no_noise.R19 <- GROAN.run(nds.no_noise.R19, wb5)
 
 Pheno_rust_df$I_cc_FAI <- as.numeric(Pheno_rust_df$I_cc_FAI)
-nds.no_noise.I_cc_FAI<- createNoisyDataset(
+nds.no_noise.Index <- createNoisyDataset(
   name = 'I_cc_FAI, no noise',
-  genotypes = myG_rust, 
+  genotypes = DArT_GROAN_SVDI, 
   phenotypes = Pheno_rust_df$I_cc_FAI)
 res.no_noise.I_cc_FAI <- GROAN.run(nds.no_noise.I_cc_FAI, wb5)
 
@@ -1006,6 +1016,149 @@ for (r in 1:cycles) {
   Index_R19_accuracy[r, 1] <-  cor(pred_Index_valid, Index_R19_valid, use = "complete")
 }
 mean(Index_R19_accuracy)
+
+CV2_DArT_rrBLUP <- cbind(AUDPC_R19_accuracy,DS_R19_accuracy,IF_R19_accuracy,IT_R19_accuracy,Index_R19_accuracy, )
+CV2_DArT_rrBLUP <- data.frame(CV2_DArT_rrBLUP)
+write.xlsx(x = CV2_DArT_rrBLUP, file = "results/CV2_DArT_rrBLUP.xlsx", overwrite = T)
+
+#Voy a probar a predecir el mega ambiente (BLUP GxE) con los datos de cámara incluido el índice [CV1]:
+res.AUDPC.field = GROAN.run(nds = nds.no_noise.AUDPC, wb = wb5, nds.test = nds.no_noise.Rust)
+print(res.AUDPC.field[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.IF.field = GROAN.run(nds = nds.no_noise.IF, wb = wb5, nds.test = nds.no_noise.Rust)
+print(res.IF.field[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.IT.field = GROAN.run(nds = nds.no_noise.IT, wb = wb5, nds.test = nds.no_noise.Rust)
+print(res.IT.field[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.DS.field = GROAN.run(nds = nds.no_noise.DS, wb = wb5, nds.test = nds.no_noise.Rust)
+print(res.DS.field[,c('dataset.train', 'dataset.test', 'pearson')])
+
+res.Index.field = GROAN.run(nds = nds.no_noise.I_cc_FAI, wb = wb5, nds.test = nds.no_noise.Rust)
+print(res.Index.field[,c('dataset.train', 'dataset.test', 'pearson')])
+
+predictors.field <- rbind(res.AUDPC.field,res.IF.field,res.IT.field,res.DS.field,res.Index.field)
+predictors.field$pearson <- abs(predictors.field$pearson)
+head(predictors.field)
+plotResult(predictors.field, variable = "pearson")
+predictors.field %>%
+  group_by(dataset.train, dataset.test, regressor) %>%
+  summarise("meanPA" = mean(pearson))
+
+write.xlsx(predictors.field, "field&MEGAenv_traits_predictorsDArT.xlsx")
+plotResult(res.Rust)
+res.Rust %>%
+  group_by(regressor) %>%
+  summarise("meanPA" = mean(pearson))
+
+  # Y también [CV2], pero en este caso solo rrBLUP. En el anterior era rrBLUP y BL
+traits = 1
+cycles = 500
+
+AUDPC_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  AUDPC = (Pheno_train[, 5])
+  AUDPC_answer <- mixed.solve(AUDPC, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = AUDPC_answer$u
+  e = as.matrix(u)
+  pred_AUDPC_valid = m_valid %*% e
+  pred_AUDPC = pred_AUDPC_valid[, 1] + AUDPC_answer$beta  
+  pred_AUDPC
+  AUDPC_R19_valid = as.numeric(Pheno_valid[, 3])
+  AUDPC_R19_accuracy[r, 1] <-  cor(pred_AUDPC_valid, AUDPC_R19_valid, use = "complete")
+}
+mean(AUDPC_mega_accuracy)
+
+DS_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  DS = (Pheno_train[, 9])
+  DS_answer <- mixed.solve(DS, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = DS_answer$u
+  e = as.matrix(u)
+  pred_DS_valid = m_valid %*% e
+  pred_DS = pred_DS_valid[, 1] + DS_answer$beta  
+  pred_DS
+  DS_R19_valid = as.numeric(Pheno_valid[, 3])
+  DS_R19_accuracy[r, 1] <-  cor(pred_DS_valid, DS_R19_valid, use = "complete")
+}
+mean(DS_mega_accuracy)
+
+IF_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  IF = (Pheno_train[, 7])
+  IF_answer <- mixed.solve(IF, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = IF_answer$u
+  e = as.matrix(u)
+  pred_IF_valid = m_valid %*% e
+  pred_IF = pred_IF_valid[, 1] + IF_answer$beta  
+  pred_IF
+  IF_R19_valid = as.numeric(Pheno_valid[, 3])
+  IF_R19_accuracy[r, 1] <-  cor(pred_IF_valid, IF_R19_valid, use = "complete")
+}
+mean(IF_mega_accuracy)
+
+IT_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  IT = (Pheno_train[, 8])
+  IT_answer <- mixed.solve(IT, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = IT_answer$u
+  e = as.matrix(u)
+  pred_IT_valid = m_valid %*% e
+  pred_IT = pred_IT_valid[, 1] + IT_answer$beta  
+  pred_IT
+  IT_R19_valid = as.numeric(Pheno_valid[, 3])
+  IT_R19_accuracy[r, 1] <-  cor(pred_IT_valid, IT_R19_valid, use = "complete")
+}
+mean(IT_mega_accuracy)
+
+Index_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+for (r in 1:cycles) {
+  train = as.matrix(sample(1:320, 288))
+  test = setdiff(1:320, train)
+  Pheno_train = Pheno_rust_df[train, ]
+  m_train = DArT_rust_SVDI[train, ]
+  Pheno_valid = Pheno_rust_df[test, ]
+  m_valid = DArT_rust_SVDI[test, ]
+  
+  Index = (Pheno_train[, 14])
+  Index_answer <- mixed.solve(Index, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+  u = Index_answer$u
+  e = as.matrix(u)
+  pred_Index_valid = m_valid %*% e
+  pred_Index = pred_Index_valid[, 1] + Index_answer$beta  
+  pred_Index
+  Index_R19_valid = as.numeric(Pheno_valid[, 3])
+  Index_R19_accuracy[r, 1] <-  cor(pred_Index_valid, Index_R19_valid, use = "complete")
+}
+mean(Index_mega_accuracy)
 
 CV2_DArT_rrBLUP <- cbind(AUDPC_R19_accuracy,DS_R19_accuracy,IF_R19_accuracy,IT_R19_accuracy,Index_R19_accuracy, )
 CV2_DArT_rrBLUP <- data.frame(CV2_DArT_rrBLUP)

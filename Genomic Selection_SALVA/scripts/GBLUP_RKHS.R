@@ -8,7 +8,7 @@
 library('BGLR')
 Pheno_rust <- as.matrix(read.table(file = "BLUP_GS_rust.txt", header = T)) #load phenotypes
 Pheno_rust<- mapply(Pheno_rust, FUN=as.numeric) #convert matrix to numeric
-Pheno_rust <- matrix(data=Pheno_rust, ncol=15, nrow=320) # convert matrix to numeric 2
+Pheno_rust <- matrix(data=Pheno_rust, ncol=16, nrow=320) # convert matrix to numeric 2
 
 #traits:
 R19 <- 3 # choose any number in 1:ncol(Pheno_rust)
@@ -17,6 +17,7 @@ IF <- 7
 IT <- 8
 DS <- 9
 Index <- 14
+Rust <- 16
 
 G <- as.matrix(read.xlsx(xlsxFile = "GenPea_SilDArT_Kinship_rust.xlsx", sheet = "Sheet 3", colNames = F)) #G matrix
 prefix <- paste(colnames(Pheno_rust)[R19],"_",sep="")
@@ -375,9 +376,30 @@ mean(mymat_DS)
   }
 }
 mean(mymat_Index)
+#Single ENV Rust with NA [CV0]:
+{
+  env <- Rust # choose any set of environments from 1:ncol(Y)
+  nEnv <- length(env)
+  Y <- Pheno_rust[,env]
+  n <- nrow(as.matrix(Y))
+  percTST<-0.1
+  nTST <- round(percTST*n)
+  rep = 50
+  mymat_Rust <- matrix(nrow = rep, ncol = 1)
+  prefix_Rust <- paste(colnames(Pheno_rust)[Rust],"_",sep="")
+  for (i in 1:rep) {
+    tst<-sample(1:n,size=nTST,replace=FALSE)
+    YNA <- Y
+    YNA[tst]<-NA
+    fm_Rust_CV1 <- BGLR(y=YNA,ETA=ETA,nIter=12000,burnIn=2000,saveAt=prefix_Rust, verbose = F) 
+    mymat_Rust[i,] <- cor(Pheno_rust[tst,Rust], fm_Rust_CV1$yHat[tst])
+  }
+}
+mean(mymat_Rust)
 
-GBLUP_singlENV <- cbind(mymat_R19, mymat_AUDPC, mymat_IF, mymat_IT, mymat_DS, mymat_Index)
+GBLUP_singlENV <- cbind(mymat_R19, mymat_AUDPC, mymat_IF, mymat_IT, mymat_DS, mymat_Index, mymat_Rust)
 write.xlsx(GBLUP_singlENV, "GBLUP_singlENV.xlsx")
+GBLUP_singlENV <- read.xlsx("GBLUP_singlENV.xlsx")
 
 #Across ENV (CC -AUDPC- and R19 -DS-)####
 #Across-Environment Model (model fitting)

@@ -187,6 +187,19 @@ Rall_field$Species <- as.factor(Rall_field$Species)
 Rall_field$Structure <- as.factor(Rall_field$Structure)
 Rall_field$GEN <- as.factor(Rall_field$GEN)
 }
+res_ind <- waasb(Rall_field,
+                 env = ENV,
+                 gen = GEN,
+                 rep = REP,
+                 resp = Rust,
+                 block = BLOCK,
+                 mresp = "l",
+                 verbose = FALSE)
+res_ind$Rust$ESTIMATES
+model_indexes <- blup_indexes(res_ind)
+model_indexes$Rust
+BLUP_field <- gmd(model_indexes)
+write.xlsx(BLUP_field, "BLUP_field2.xlsx")
 
   #Four ENVs with Rust (%) arc.sin transformed
   {
