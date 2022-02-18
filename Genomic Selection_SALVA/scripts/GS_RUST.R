@@ -19,7 +19,6 @@
     myG_rust[myG_rust == 1] <- 2
     myG_rust[myG_rust == 0.5] <- 1
     myG_rust <- as.data.frame(myG_rust)
-    
 
     # 2) Make sure NAs are properly read it.
     # Calculate the % of missing value within the matrix n x m:
@@ -508,13 +507,9 @@
     library(BGLR)
     wb2 <- createWorkbench(phenoRegressor.BGLR, 
                            regressor.name = 'Bayesian Lasso',
-                           outfolder = "/results",
-                           saveHyperParms=F,
-                           saveExtraData = F,
-                          type = 'BL',
-                          stratified = T,
                           reps = 50,
-                          folds = 10)
+                          folds = 10,
+                          stratified = T)
     print(wb2)
     #re run the code with the new wb:
     res.no_noise.FAI2.bl <- GROAN.run(nds.no_noise.FAI2, wb2)
@@ -1163,3 +1158,103 @@ mean(Index_mega_accuracy)
 CV2_DArT_rrBLUP <- cbind(AUDPC_R19_accuracy,DS_R19_accuracy,IF_R19_accuracy,IT_R19_accuracy,Index_R19_accuracy, )
 CV2_DArT_rrBLUP <- data.frame(CV2_DArT_rrBLUP)
 write.xlsx(x = CV2_DArT_rrBLUP, file = "results/CV2_DArT_rrBLUP.xlsx", overwrite = T)
+
+
+
+#HERE WE GO AGAIN. NOW WITH SCALED FIELD DATA####
+R_scaled <- read.xlsx("BLUPs_scaled.xlsx")
+head(R_scaled)
+head(DArT_GROAN_SVDI[1:20,1:20])
+  nds.R18 = createNoisyDataset(
+   name = 'R18',
+   genotypes = DArT_GROAN_SVDI, 
+   phenotypes = R_scaled$R18
+  )
+  nds.R19 = createNoisyDataset(
+    name = 'R19',
+    genotypes = DArT_GROAN_SVDI, 
+    phenotypes = R_scaled$R19
+  )
+  nds.R20 = createNoisyDataset(
+    name = 'R20',
+    genotypes = DArT_GROAN_SVDI, 
+    phenotypes = R_scaled$R20
+  )
+  wb = createWorkbench(
+    #parameters defining crossvalidation
+    folds = 10, reps = 50, stratified = FALSE, 
+    
+    #parameters defining save-on-hard-disk policy
+    outfolder = NULL, saveHyperParms = FALSE, saveExtraData = FALSE,
+    
+    #a regressor
+    regressor = phenoRegressor.rrBLUP, regressor.name = 'rrBLUP'
+  )
+  wb2 = createWorkbench(
+    #parameters defining crossvalidation
+    folds = 10, reps = 50, stratified = FALSE, 
+    
+    #parameters defining save-on-hard-disk policy
+    outfolder = NULL, saveHyperParms = FALSE, saveExtraData = FALSE,
+    
+    #a regressor
+    regressor = phenoRegressor.BGLR, regressor.name = 'BL', type = "BL"
+  )
+  res_18vs19.20 = GROAN.run(
+    nds = nds.R18, wb = wb, 
+    nds.test = list(nds.R19, nds.R20)
+  )
+  res_18vs19.20 %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_18vs19.20)
+  
+  res_19vs18.20 = GROAN.run(
+    nds = nds.R19, wb = wb, 
+    nds.test = list(nds.R18, nds.R20)
+  )
+  res_19vs18.20 %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_19vs18.20)
+  res_20vs18.19 = GROAN.run(
+    nds = nds.R20, wb = wb, 
+    nds.test = list(nds.R18, nds.R19)
+  )
+  res_20vs18.19 %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_20vs18.19)
+  #create the same wb with BL:
+  res_18vs19.20bl = GROAN.run(
+    nds = nds.R18, wb = wb2, 
+    nds.test = list(nds.R19, nds.R20)
+  )
+  res_18vs19.20bl %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_18vs19.20bl)
+  
+  res_19vs18.20bl = GROAN.run(
+    nds = nds.R19, wb = wb2, 
+    nds.test = list(nds.R18, nds.R20)
+  )
+  res_19vs18.20bl %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_19vs18.20bl)
+  
+  res_20vs18.19bl = GROAN.run(
+    nds = nds.R20, wb = wb2, 
+    nds.test = list(nds.R18, nds.R19)
+  )
+  res_20vs18.19bl %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_20vs18.19bl)
+  #save results 
+  res_summary1 <- rbind(res_18vs19.20, res_18vs19.20bl, res_19vs18.20, res_19vs18.20bl,
+                        res_20vs18.19, res_20vs18.19bl)
+  plotResult(res_summary1)
+  write.xlsx(res_summary1, "acrossENV_BLrr_scaled.xlsx")
+  #create the same wb with GBLUP:

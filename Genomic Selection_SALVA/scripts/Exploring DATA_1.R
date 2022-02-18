@@ -187,19 +187,20 @@ Rall_field$Species <- as.factor(Rall_field$Species)
 Rall_field$Structure <- as.factor(Rall_field$Structure)
 Rall_field$GEN <- as.factor(Rall_field$GEN)
 }
-res_ind <- waasb(Rall_field,
+res_ind <- waasb(x_scaled,
                  env = ENV,
                  gen = GEN,
                  rep = REP,
-                 resp = Rust,
+                 resp = c("Rust", "RustT"),
                  block = BLOCK,
-                 mresp = "l",
+                 mresp = c( "l", "l"),
                  verbose = FALSE)
-res_ind$Rust$ESTIMATES
+res_ind$RustT$ESTIMATES
 model_indexes <- blup_indexes(res_ind)
 model_indexes$Rust
 BLUP_field <- gmd(model_indexes)
-write.xlsx(BLUP_field, "BLUP_field2.xlsx")
+write.xlsx(BLUP_field, "BLUP_field3.xlsx")
+
 
   #Four ENVs with Rust (%) arc.sin transformed
   {
@@ -213,7 +214,7 @@ write.xlsx(BLUP_field, "BLUP_field2.xlsx")
                    "text", #GEN
                    "numeric" #RustT
                  ))
-  }
+}
       #Distribution
       D18T <-   Rall_T %>%      
          filter(ENV == "R18")
@@ -237,7 +238,104 @@ write.xlsx(BLUP_field, "BLUP_field2.xlsx")
         theme_classic() +
         facet_grid(~ ENV)
       
-
+  #field ENVs with Rust (%) arc.sin transformed and scaled
+      {
+        x_scaled <- #NoControls
+          read_excel("C:/Users/Salva/Documents/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/field_data_scaled.xlsx", 
+                     sheet = "Sheet1", 
+                     col_types = 
+                       c("text", #ENV
+                         "text", #REP
+                         "text", #BLOCK
+                         "text", #GEN
+                         "numeric", #Rust
+                         "numeric" #RustT
+                       ))
+        
+        #mixed model
+        mixed_mod_x_scaled <- 
+          gamem_met(x_scaled,
+                    ENV,
+                    GEN, 
+                    REP, 
+                    resp = c("Rust", "RustT"),
+                    block = BLOCK
+          )
+        get_model_data(mixed_mod_x_scaled)
+        #single ENV
+        R18_scaled <- x_scaled %>%
+          filter(ENV == "R18")
+        mod_R18_scaled <- gamem(.data = R18_scaled,
+              gen = GEN,
+              rep = REP,
+              resp = c("Rust", "RustT"),
+              block = BLOCK)
+        get_model_data(mod_R18_scaled)
+        R19_scaled <- x_scaled %>%
+          filter(ENV == "R19")
+        mod_R19_scaled <- gamem(.data = R19_scaled,
+                                gen = GEN,
+                                rep = REP,
+                                resp = c("Rust", "RustT"),
+                                block = BLOCK)
+        get_model_data(mod_R20_scaled)
+        R20_scaled <- x_scaled %>%
+          filter(ENV == "R20")
+        mod_R20_scaled <- gamem(.data = R20_scaled,
+                                gen = GEN,
+                                rep = REP,
+                                resp = c("Rust", "RustT"),
+                                block = BLOCK)
+        get_model_data(mod_R19_scaled)
+        BLUP18_scaled <- mod_R18_scaled$Rust$BLUPgen %>%
+          arrange(GEN)
+        BLUP19_scaled <- mod_R19_scaled$Rust$BLUPgen %>%
+          arrange(GEN)
+        BLUP20_scaled <- mod_R20_scaled$Rust$BLUPgen %>%
+          arrange(GEN)
+        cor(BLUP18_scaled$Predicted,BLUP19_scaled$Predicted)
+        BLUPAUDPC <- gen_alphaRCC$AUDPC_T$BLUPgen %>%
+          arrange(GEN)
+        BLUPDS <- gen_alphaRCC$DS_T$BLUPgen %>%
+          arrange(GEN)
+        BLUPIT <- gen_alphaRCC$IT_T$BLUPgen %>%
+          arrange(GEN)
+        BLUPIF <- gen_alphaRCC$IF_T$BLUPgen %>%
+          arrange(GEN)
+        BLUPLP50 <- gen_alphaRCC$PL50_T$BLUPgen %>%
+          arrange(GEN)
+        
+        cor(BLUP18_scaled$Predicted,BLUPIF$Predicted)
+        GEN <- as.factor(GEN)
+        
+          cor(mod_R20_scaled$Rust$BLUPgen$Predicted,mod_R18_scaled$Rust$BLUPgen$Predicted)
+          GEN <- as.vector(BLUPIF$GEN)
+          BLUPs_scaled <- data.frame(
+            cbind(GEN,
+                  as.numeric(BLUP18_scaled$Predicted),
+                  as.numeric(BLUP19_scaled$Predicted),
+                  as.numeric(BLUP20_scaled$Predicted),
+                  as.numeric(BLUPAUDPC$Predicted),
+                  as.numeric(BLUPDS$Predicted),
+                  as.numeric(BLUPIT$Predicted),
+                  as.numeric(BLUPIF$Predicted),
+                  as.numeric(BLUPLP50$Predicted)
+                  ))
+          head(BLUPs_scaled)
+          colnames(BLUPs_scaled) <- c("GEN", "R18", "R19", "R20", "AUDPC", "DS", "IT", "IF", "LP50")
+          cor(BLUPs_scaled[,2:9], method = "spearman")
+          BLUPs_scaled$R18 <- as.numeric(BLUPs_scaled$R18)
+          BLUPs_scaled$R19 <- as.numeric(BLUPs_scaled$R19)
+          BLUPs_scaled$R20 <- as.numeric(BLUPs_scaled$R20)
+          BLUPs_scaled$AUDPC <- as.numeric(BLUPs_scaled$AUDPC)
+          BLUPs_scaled$DS <- as.numeric(BLUPs_scaled$DS)
+          BLUPs_scaled$IT <- as.numeric(BLUPs_scaled$IT)
+          BLUPs_scaled$IF <- as.numeric(BLUPs_scaled$IF)
+          BLUPs_scaled$LP50 <- as.numeric(BLUPs_scaled$LP50)
+          corr_plot(BLUPs_scaled)
+          corr_plot(R_scaled)
+          head(BLUPs_scaled)
+        }
 
 #Analysis of single environment/experiment using mixed-models
 
@@ -309,7 +407,7 @@ gen_alphaR20 <-
         REP, 
         resp = c("AUDPC_n", "IF_n", "IT_n", "DS_n"))
     
-    get_model_data(gen_alphaRCC_noLP)
+    get_model_data(gen_alphaRCC)
     gen_alphaRCC$AUDPC_T$BLUPgen
     BLUPcc <- get_model_data(gen_alphaRCC, what = "blupg")
     #write.xlsx(BLUPcc, file = "BLUPcc.xlsx", sep = "/t")
