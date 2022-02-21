@@ -744,7 +744,7 @@ BMORS_Env(
 
 pheno <- data.frame(read.xlsx("multiENV_rust.xlsx", sheet = "Sheet 1", colNames = T))
 #Matrix design
-geno <- data.frame(read.xlsx("data/GenPea_SilDArT_Kinship_rust.xlsx", sheet = "Sheet 1", colNames = T, rowNames = T))
+geno <- data.frame(read.xlsx("GenPea_SilDArT_Kinship_rust.xlsx", sheet = "Sheet 1", colNames = T, rowNames = T))
 LG <- cholesky(geno)
 write.csv(LG, "cholesky_geno.txt", sep = "_")
 ZG <- model.matrix(~0 + as.factor(pheno$GEN))
@@ -1180,6 +1180,21 @@ head(DArT_GROAN_SVDI[1:20,1:20])
     genotypes = DArT_GROAN_SVDI, 
     phenotypes = R_scaled$R20
   )
+  nds.DS = createNoisyDataset(
+    name = 'DS',
+    genotypes = DArT_GROAN_SVDI, 
+    phenotypes = R_scaled$DS
+  )
+  nds.Index = createNoisyDataset(
+    name = 'Index',
+    genotypes = DArT_GROAN_SVDI, 
+    phenotypes = R_scaled$I_cc_FAI
+  )
+  nds.mega = createNoisyDataset(
+    name = 'MegaENV',
+    genotypes = DArT_GROAN_SVDI, 
+    phenotypes = R_scaled$Rust
+  )
   wb = createWorkbench(
     #parameters defining crossvalidation
     folds = 10, reps = 50, stratified = FALSE, 
@@ -1190,16 +1205,8 @@ head(DArT_GROAN_SVDI[1:20,1:20])
     #a regressor
     regressor = phenoRegressor.rrBLUP, regressor.name = 'rrBLUP'
   )
-  wb2 = createWorkbench(
-    #parameters defining crossvalidation
-    folds = 10, reps = 50, stratified = FALSE, 
-    
-    #parameters defining save-on-hard-disk policy
-    outfolder = NULL, saveHyperParms = FALSE, saveExtraData = FALSE,
-    
-    #a regressor
-    regressor = phenoRegressor.BGLR, regressor.name = 'BL', type = "BL"
-  )
+  wb2 = addRegressor(wb, regressor = phenoRegressor.BGLR, type = "BL", regressor.name = "BL"
+ )
   res_18vs19.20 = GROAN.run(
     nds = nds.R18, wb = wb, 
     nds.test = list(nds.R19, nds.R20)
@@ -1257,4 +1264,26 @@ head(DArT_GROAN_SVDI[1:20,1:20])
                         res_20vs18.19, res_20vs18.19bl)
   plotResult(res_summary1)
   write.xlsx(res_summary1, "acrossENV_BLrr_scaled.xlsx")
-  #create the same wb with GBLUP:
+  #ahora DS e Index (training) y MegaENV como validation test:
+   #con esto relleno la tabla para el artículo:
+  res_DSvsmega = GROAN.run(
+    nds = nds.DS, wb = wb2, 
+    nds.test = nds.mega
+  )
+  res_DSvsmega %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_DSvsmega)
+  
+  res_Indexvsmega = GROAN.run(
+    nds = nds.Index, wb = wb2, 
+    nds.test = nds.mega
+  )
+  res_Indexvsmega %>%
+    group_by(dataset.train, dataset.test) %>%
+    summarise("meanPA" = mean(pearson))
+  plotResult(res_Indexvsmega)
+  res_summary2 <- rbind(res_DSvsmega, res_Indexvsmega)
+  plotResult(res_summary2)
+  write.xlsx(res_summary2, "acrossENV_BLrr_DS_Index_mega.xlsx")
+  
