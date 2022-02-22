@@ -1190,6 +1190,12 @@ head(DArT_GROAN_SVDI[1:20,1:20])
     genotypes = DArT_GROAN_SVDI, 
     phenotypes = R_scaled$I_cc_FAI
   )
+  nds.mega.kinship = createNoisyDataset(
+    name = 'MegaENV',
+    genotypes = DArT_GROAN_SVDI, 
+    phenotypes = R_scaled$Rust,
+    covariance = geno
+  )
   nds.mega = createNoisyDataset(
     name = 'MegaENV',
     genotypes = DArT_GROAN_SVDI, 
@@ -1207,6 +1213,8 @@ head(DArT_GROAN_SVDI[1:20,1:20])
   )
   wb2 = addRegressor(wb, regressor = phenoRegressor.BGLR, type = "BL", regressor.name = "BL"
  )
+  wb3 = createWorkbench(folds = 10, reps = 50, stratified = FALSE, outfolder = NULL, saveHyperParms = FALSE, saveExtraData = FALSE,
+                        regressor = phenoRegressor.BGLR, regressor.name = 'GBLUP', type = "RKHS")
   res_18vs19.20 = GROAN.run(
     nds = nds.R18, wb = wb, 
     nds.test = list(nds.R19, nds.R20)
@@ -1286,4 +1294,18 @@ head(DArT_GROAN_SVDI[1:20,1:20])
   res_summary2 <- rbind(res_DSvsmega, res_Indexvsmega)
   plotResult(res_summary2)
   write.xlsx(res_summary2, "acrossENV_BLrr_DS_Index_mega.xlsx")
+  res_summary2 <- read.xlsx("acrossENV_BLrr_DS_Index_mega.xlsx")
+  res_summary2 %>%
+    group_by(dataset.train, dataset.test, regressor) %>%
+    summarise("meanPA" = mean(pearson))
+  
+  #CV1 de megaENV para BL y rrBLUP:
+  res_mega = GROAN.run(nds = nds.mega, wb = wb2)
+  res_mega_GBLUP = GROAN.run(nds = nds.mega.kinship, wb = wb3)
+  res_mega_summary <- rbind(res_mega, res_mega_GBLUP)
+  res_summary3 <- rbind(res_summary2, res_mega_summary)
+  res_summary3 %>%
+    group_by(dataset.train, dataset.test, regressor) %>%
+    summarise("meanPA" = mean(pearson))
+  write.xlsx(res_summary3, "acrossENV_BLrr_DS_Index_mega.xlsx", overwrite = T)
   
