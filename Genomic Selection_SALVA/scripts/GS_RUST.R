@@ -891,131 +891,6 @@ predictorsDArT %>%
 
 write.xlsx(predictorsDArT, "results/field&CC_traits_predictorsDArT.xlsx")
 
-#Hasta ahora tengo los resultados del escenario [CV1], rehacer en el escenario [CV2]: new env new lines:
-  # Define the training (90 % = 224 genotypes) and validation (10 % = 96 genotypes) populations
-train <- as.matrix(sample(1:320, 288))
-test <- setdiff(1:320, train)      
-
-# Pheno_train and m_train are the phenotype and marker matrices for the values in the training population
-# Pheno_valid and m_valid will be the validation populations
-Pheno_train = Pheno_rust_df[train, ]
-m_train = DArT_rust_SVDI[train, ]
-
-Pheno_valid = Pheno_rust_df[test, ]
-m_valid = DArT_rust_SVDI[test, ]
-
-traits = 1
-cycles = 500
-
-AUDPC_R19_accuracy = matrix(nrow = cycles, ncol = traits)
-for (r in 1:cycles) {
-  train = as.matrix(sample(1:320, 288))
-  test = setdiff(1:320, train)
-  Pheno_train = Pheno_rust_df[train, ]
-  m_train = DArT_rust_SVDI[train, ]
-  Pheno_valid = Pheno_rust_df[test, ]
-  m_valid = DArT_rust_SVDI[test, ]
-
-  AUDPC = (Pheno_train[, 5])
-  AUDPC_answer <- mixed.solve(AUDPC, Z = m_train, K = NULL, SE = F, return.Hinv = F)
-  u = AUDPC_answer$u
-  e = as.matrix(u)
-  pred_AUDPC_valid = m_valid %*% e
-  pred_AUDPC = pred_AUDPC_valid[, 1] + AUDPC_answer$beta  
-  pred_AUDPC
-  AUDPC_R19_valid = as.numeric(Pheno_valid[, 3])
-  AUDPC_R19_accuracy[r, 1] <-  cor(pred_AUDPC_valid, AUDPC_R19_valid, use = "complete")
-}
-mean(AUDPC_R19_accuracy)
-
-DS_R19_accuracy = matrix(nrow = cycles, ncol = traits)
-for (r in 1:cycles) {
-  train = as.matrix(sample(1:320, 288))
-  test = setdiff(1:320, train)
-  Pheno_train = Pheno_rust_df[train, ]
-  m_train = DArT_rust_SVDI[train, ]
-  Pheno_valid = Pheno_rust_df[test, ]
-  m_valid = DArT_rust_SVDI[test, ]
-  
-  DS = (Pheno_train[, 9])
-  DS_answer <- mixed.solve(DS, Z = m_train, K = NULL, SE = F, return.Hinv = F)
-  u = DS_answer$u
-  e = as.matrix(u)
-  pred_DS_valid = m_valid %*% e
-  pred_DS = pred_DS_valid[, 1] + DS_answer$beta  
-  pred_DS
-  DS_R19_valid = as.numeric(Pheno_valid[, 3])
-  DS_R19_accuracy[r, 1] <-  cor(pred_DS_valid, DS_R19_valid, use = "complete")
-}
-mean(DS_R19_accuracy)
-
-IF_R19_accuracy = matrix(nrow = cycles, ncol = traits)
-for (r in 1:cycles) {
-  train = as.matrix(sample(1:320, 288))
-  test = setdiff(1:320, train)
-  Pheno_train = Pheno_rust_df[train, ]
-  m_train = DArT_rust_SVDI[train, ]
-  Pheno_valid = Pheno_rust_df[test, ]
-  m_valid = DArT_rust_SVDI[test, ]
-  
-  IF = (Pheno_train[, 7])
-  IF_answer <- mixed.solve(IF, Z = m_train, K = NULL, SE = F, return.Hinv = F)
-  u = IF_answer$u
-  e = as.matrix(u)
-  pred_IF_valid = m_valid %*% e
-  pred_IF = pred_IF_valid[, 1] + IF_answer$beta  
-  pred_IF
-  IF_R19_valid = as.numeric(Pheno_valid[, 3])
-  IF_R19_accuracy[r, 1] <-  cor(pred_IF_valid, IF_R19_valid, use = "complete")
-}
-mean(IF_R19_accuracy)
-
-IT_R19_accuracy = matrix(nrow = cycles, ncol = traits)
-for (r in 1:cycles) {
-  train = as.matrix(sample(1:320, 288))
-  test = setdiff(1:320, train)
-  Pheno_train = Pheno_rust_df[train, ]
-  m_train = DArT_rust_SVDI[train, ]
-  Pheno_valid = Pheno_rust_df[test, ]
-  m_valid = DArT_rust_SVDI[test, ]
-  
-  IT = (Pheno_train[, 8])
-  IT_answer <- mixed.solve(IT, Z = m_train, K = NULL, SE = F, return.Hinv = F)
-  u = IT_answer$u
-  e = as.matrix(u)
-  pred_IT_valid = m_valid %*% e
-  pred_IT = pred_IT_valid[, 1] + IT_answer$beta  
-  pred_IT
-  IT_R19_valid = as.numeric(Pheno_valid[, 3])
-  IT_R19_accuracy[r, 1] <-  cor(pred_IT_valid, IT_R19_valid, use = "complete")
-}
-mean(IT_R19_accuracy)
-
-Index_R19_accuracy = matrix(nrow = cycles, ncol = traits)
-for (r in 1:cycles) {
-  train = as.matrix(sample(1:320, 288))
-  test = setdiff(1:320, train)
-  Pheno_train = Pheno_rust_df[train, ]
-  m_train = DArT_rust_SVDI[train, ]
-  Pheno_valid = Pheno_rust_df[test, ]
-  m_valid = DArT_rust_SVDI[test, ]
-  
-  Index = (Pheno_train[, 14])
-  Index_answer <- mixed.solve(Index, Z = m_train, K = NULL, SE = F, return.Hinv = F)
-  u = Index_answer$u
-  e = as.matrix(u)
-  pred_Index_valid = m_valid %*% e
-  pred_Index = pred_Index_valid[, 1] + Index_answer$beta  
-  pred_Index
-  Index_R19_valid = as.numeric(Pheno_valid[, 3])
-  Index_R19_accuracy[r, 1] <-  cor(pred_Index_valid, Index_R19_valid, use = "complete")
-}
-mean(Index_R19_accuracy)
-
-CV2_DArT_rrBLUP <- cbind(AUDPC_R19_accuracy,DS_R19_accuracy,IF_R19_accuracy,IT_R19_accuracy,Index_R19_accuracy, )
-CV2_DArT_rrBLUP <- data.frame(CV2_DArT_rrBLUP)
-write.xlsx(x = CV2_DArT_rrBLUP, file = "results/CV2_DArT_rrBLUP.xlsx", overwrite = T)
-
 #Voy a probar a predecir el mega ambiente (BLUP GxE) con los datos de cámara incluido el índice [CV1]:
 res.AUDPC.field = GROAN.run(nds = nds.no_noise.AUDPC, wb = wb5, nds.test = nds.no_noise.Rust)
 print(res.AUDPC.field[,c('dataset.train', 'dataset.test', 'pearson')])
@@ -1194,7 +1069,7 @@ head(DArT_GROAN_SVDI[1:20,1:20])
     name = 'MegaENV',
     genotypes = DArT_GROAN_SVDI, 
     phenotypes = R_scaled$Rust,
-    covariance = geno
+    covariance = G
   )
   nds.mega = createNoisyDataset(
     name = 'MegaENV',
@@ -1308,4 +1183,1124 @@ head(DArT_GROAN_SVDI[1:20,1:20])
     group_by(dataset.train, dataset.test, regressor) %>%
     summarise("meanPA" = mean(pearson))
   write.xlsx(res_summary3, "acrossENV_BLrr_DS_Index_mega.xlsx", overwrite = T)
+  
+#escenario [CV2]: new env new lines con rrBLUP####
+  traits = 1
+  cycles = 500
+  
+  DS_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    
+    DS = (Pheno_train[, 8])
+    DS_answer <- mixed.solve(DS, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = DS_answer$u
+    e = as.matrix(u)
+    pred_DS_valid = m_valid %*% e
+    pred_DS = pred_DS_valid[, 1] + DS_answer$beta  
+    pred_DS
+    DS_mega_valid = as.numeric(Pheno_valid[, 18])
+    DS_mega_accuracy[r, 1] <-  cor(pred_DS_valid, DS_mega_valid, use = "complete")
+  }
+  mean(DS_mega_accuracy)
+  
+  Index_mega_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    Index = (Pheno_train[, 17])
+    Index_answer <- mixed.solve(Index, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = Index_answer$u
+    e = as.matrix(u)
+    pred_Index_valid = m_valid %*% e
+    pred_Index = pred_Index_valid[, 1] + Index_answer$beta  
+    pred_Index
+    Index_mega_valid = as.numeric(Pheno_valid[, 18])
+    Index_mega_accuracy[r, 1] <-  cor(pred_Index_valid, Index_mega_valid, use = "complete")
+  }
+  mean(Index_mega_accuracy)
+  
+  R18_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    R18 = (Pheno_train[, 4])
+    R18_answer <- mixed.solve(R18, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = R18_answer$u
+    e = as.matrix(u)
+    pred_R18_valid = m_valid %*% e
+    pred_R18 = pred_R18_valid[, 1] + R18_answer$beta  
+    pred_R18
+    R18_R19_valid = as.numeric(Pheno_valid[, 5])
+    R18_R19_accuracy[r, 1] <-  cor(pred_R18_valid, R18_R19_valid, use = "complete")
+  }
+  mean(R18_R19_accuracy)
+  
+  R18_R20_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    R18 = (Pheno_train[, 4])
+    R18_answer <- mixed.solve(R18, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = R18_answer$u
+    e = as.matrix(u)
+    pred_R18_valid = m_valid %*% e
+    pred_R18 = pred_R18_valid[, 1] + R18_answer$beta  
+    pred_R18
+    R18_R20_valid = as.numeric(Pheno_valid[, 6])
+    R18_R20_accuracy[r, 1] <-  cor(pred_R18_valid, R18_R20_valid, use = "complete")
+  }
+  mean(R18_R20_accuracy)
+  
+  R19_R18_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    R19 = (Pheno_train[, 5])
+    R19_answer <- mixed.solve(R19, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = R19_answer$u
+    e = as.matrix(u)
+    pred_R19_valid = m_valid %*% e
+    pred_R19 = pred_R19_valid[, 1] + R19_answer$beta  
+    pred_R19
+    R19_R18_valid = as.numeric(Pheno_valid[, 4])
+    R19_R18_accuracy[r, 1] <-  cor(pred_R19_valid, R19_R18_valid, use = "complete")
+  }
+  mean(R19_R18_accuracy)
+  
+  R19_R20_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    R19 = (Pheno_train[, 5])
+    R19_answer <- mixed.solve(R19, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = R19_answer$u
+    e = as.matrix(u)
+    pred_R19_valid = m_valid %*% e
+    pred_R19 = pred_R19_valid[, 1] + R19_answer$beta  
+    pred_R19
+    R19_R20_valid = as.numeric(Pheno_valid[, 6])
+    R19_R20_accuracy[r, 1] <-  cor(pred_R19_valid, R19_R20_valid, use = "complete")
+  }
+  mean(R19_R20_accuracy)
+  
+  R20_R18_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    R20 = (Pheno_train[, 6])
+    R20_answer <- mixed.solve(R20, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = R20_answer$u
+    e = as.matrix(u)
+    pred_R20_valid = m_valid %*% e
+    pred_R20 = pred_R20_valid[, 1] + R20_answer$beta  
+    pred_R20
+    R20_R18_valid = as.numeric(Pheno_valid[, 4])
+    R20_R18_accuracy[r, 1] <-  cor(pred_R20_valid, R20_R18_valid, use = "complete")
+  }
+  mean(R20_R18_accuracy)
+  
+  R20_R19_accuracy = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Pheno_train = Pheno_rust[train, ]
+    m_train = DArT_GROAN_SVDI[train, ]
+    Pheno_valid = Pheno_rust[test, ]
+    m_valid = as.matrix(DArT_GROAN_SVDI[test, ])
+    
+    R20 = (Pheno_train[, 6])
+    R20_answer <- mixed.solve(R20, Z = m_train, K = NULL, SE = F, return.Hinv = F)
+    u = R20_answer$u
+    e = as.matrix(u)
+    pred_R20_valid = m_valid %*% e
+    pred_R20 = pred_R20_valid[, 1] + R20_answer$beta  
+    pred_R20
+    R20_R19_valid = as.numeric(Pheno_valid[, 5])
+    R20_R19_accuracy[r, 1] <-  cor(pred_R20_valid, R20_R19_valid, use = "complete")
+  }
+  mean(R20_R19_accuracy)
+  
+  CV2_DArT_rrBLUP <- data.frame(DS_mega_accuracy = DS_mega_accuracy,Index_mega_accuracy = Index_mega_accuracy
+                                ,R18_R19_accuracy = R18_R19_accuracy,R18_R20_accuracy = R18_R20_accuracy,
+                           R19_R18_accuracy= R19_R18_accuracy, R19_R20_accuracy = R19_R20_accuracy, 
+                           R20_R18_accuracy = R20_R18_accuracy, R20_R19_accuracy = R20_R19_accuracy)
+  boxplot(CV2_DArT_rrBLUP)
+  write.xlsx(x = CV2_DArT_rrBLUP, file = "results/CV2_DArT_rrBLUP.xlsx", overwrite = T)
+  
+  
+  
+#ahora [CV2] con BL, con GROAN####
+  traits = 1
+  cycles = 500
+  
+  DS_mega_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    DS <- Pheno_rust[,8] #ENV to training
+    DS[test] <- NA #training set with NAs
+    mega <- Pheno_rust[,18] #test set
+    res_DS_mega_CV2 <- phenoRegressor.BGLR(
+      phenotypes = DS,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    DS_mega_BL_CV2[r, 1] <-  cor(
+      mega[test], #Real value, test env
+      res_DS_mega_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(DS_mega_BL_CV2)
+  
+  Index_mega_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    Index <- Pheno_rust[,17] #ENV to training
+    DS[test] <- NA #training set with NAs
+    mega <- Pheno_rust[,18] #test set
+    res_Index_mega_CV2 <- phenoRegressor.BGLR(
+      phenotypes = Index,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    Index_mega_BL_CV2[r, 1] <-  cor(
+      mega[test], #Real value, test env
+      res_Index_mega_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(Index_mega_BL_CV2)
+  
+  R18_R19_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    R18 <- Pheno_rust[,4] #ENV to training
+    R18[test] <- NA #training set with NAs
+    R19 <- Pheno_rust[,5] #test set
+    res_R18_R19_CV2 <- phenoRegressor.BGLR(
+      phenotypes = R18,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    R18_R19_BL_CV2[r, 1] <-  cor(
+      R19[test], #Real value, test env
+      res_R18_R19_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(R18_R19_BL_CV2)
+  
+  R18_R20_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    R18 <- Pheno_rust[,4] #ENV to training
+    R18[test] <- NA #training set with NAs
+    R20 <- Pheno_rust[,6] #test set
+    res_R18_R20_CV2 <- phenoRegressor.BGLR(
+      phenotypes = R18,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    R18_R20_BL_CV2[r, 1] <-  cor(
+      R20[test], #Real value, test env
+      res_R18_R20_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(R18_R20_BL_CV2)
+  
+  R19_R18_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    R19 <- Pheno_rust[,5] #ENV to training
+    R19[test] <- NA #training set with NAs
+    R18 <- Pheno_rust[,4] #test set
+    res_R19_R18_CV2 <- phenoRegressor.BGLR(
+      phenotypes = R19,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    R19_R18_BL_CV2[r, 1] <-  cor(
+      R18[test], #Real value, test env
+      res_R19_R18_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(R19_R18_BL_CV2)
+  
+  R19_R20_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    R19 <- Pheno_rust[,5] #ENV to training
+    R19[test] <- NA #training set with NAs
+    R20 <- Pheno_rust[,6] #test set
+    res_R19_R20_CV2 <- phenoRegressor.BGLR(
+      phenotypes = R19,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    R19_R20_BL_CV2[r, 1] <-  cor(
+      R20[test], #Real value, test env
+      res_R19_R20_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(R19_R20_BL_CV2)
+  
+  R20_R18_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    R20 <- Pheno_rust[,6] #ENV to training
+    R20[test] <- NA #training set with NAs
+    R18 <- Pheno_rust[,4] #test set
+    res_R20_R18_CV2 <- phenoRegressor.BGLR(
+      phenotypes = R20,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    R20_R18_BL_CV2[r, 1] <-  cor(
+      R18[test], #Real value, test env
+      res_R20_R18_CV2$predictions[test], #Predicted Value, training env
+      use = "complete")
+  }
+  mean(R20_R18_BL_CV2)
+  
+  R20_R19_BL_CV2 = matrix(nrow = cycles, ncol = traits)
+  for (r in 1:cycles) {
+    train = as.matrix(sample(1:320, 288))
+    test = setdiff(1:320, train)
+    R20 <- Pheno_rust[,6] #training
+    R20[test] <- NA #training
+    R19 <- Pheno_rust[,5] #test
+    res_R20_R19_CV2 <- phenoRegressor.BGLR(
+      phenotypes = R20,
+      genotypes = DArT_GROAN_SVDI,
+      type = "BL",
+      covariances = NULL,
+      extraCovariates = NULL
+    )
+    R20_R19_BL_CV2[r, 1] <-  cor(
+      R19[test], #Real value Env 1
+      res_R20_R19_CV2$predictions[test], #Predicted Value Env2
+      use = "complete")
+  }
+  mean(R20_R19_BL_CV2)
+
+
+  CV2_DArT_BL <- data.frame(DS_mega_BL_CV2= DS_mega_BL_CV2, Index_mega_BL_CV2 = Index_mega_BL_CV2,
+                            R18_R19_BL_CV2 = R18_R19_BL_CV2, R18_R20_BL_CV2 = R18_R20_BL_CV2,
+                            R19_R18_BL_CV2 = R19_R18_BL_CV2, R19_R20_BL_CV2 = R19_R20_BL_CV2,
+                            R20_R18_BL_CV2 = R20_R18_BL_CV2, R20_R19_BL_CV2 = R20_R19_BL_CV2)
+  boxplot(CV2_DArT_BL)
+  write.xlsx(x = CV2_DArT_BL, file = "results/CV2_DArT_BL.xlsx", overwrite = T)
+
+  
+#Voy a intentar predecir resistencia a roya según el tipo de material(Wild, Landrace or Cultivar)####
+  P_Wild <- as.matrix(read.table("data/Position_Wild.txt"))
+  P_Cultivar <- as.matrix(read.table("data/Position_Cultivar.txt"))
+  P_Landrace <- as.matrix(read.table("data/Position_Landrace.txt"))
+  P_Unknown_Bline <- as.matrix(read.table("data/Position_Unknown_Bline.txt"))
+  #Filtrar datasets, Markers:
+   #Remove unnecessary markers and phenotypes from dataset:
+  DArT_material <- DArT_GROAN_SVDI[-c(P_Unknown_Bline),]
+  head(Pheno_material[1:10, 1:10])
+  
+  Pheno_material <- read.xlsx("BLUPs_scaled.xlsx", sheet = "Sheet 1") #load phenotypes
+  Pheno_material<- mapply(Pheno_material, FUN=as.numeric) #convert matrix to numeric
+  Pheno_material <- matrix(data=Pheno_material, ncol=21, nrow=320) # convert matrix to numeric 2
+  Pheno_material <- Pheno_material[-c(P_Unknown_Bline),]
+  
+  
+  Wild <- Pheno_material[c(P_Wild),] ; dim(Wild)
+  Wild_DArT <- DArT_material[c(P_Wild),] ; dim(Wild_DArT)
+  Landrace <- Pheno_material[c(P_Landrace),]; dim(Landrace)
+  Landrace_DArT <- DArT_material[c(P_Landrace),] ; dim(Landrace_DArT)
+  Cultivar <- Pheno_material[c(P_Cultivar),] ; dim(Cultivar)
+  Cultivar_DArT <- DArT_material[c(P_Cultivar),] ; dim(Cultivar_DArT)
+  
+  summary_Landrace_CVO <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  for (i in 1:cycles) {
+    train <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.9, digits = 0)))
+    test <- setdiff(1:length(Landrace[,1]), train)
+    Index_Landrace <- Landrace[,19]
+    Index_Landrace[test] <- NA
+    res_Index_Landrace_CVO = phenoRegressor.rrBLUP(phenotypes = Index_Landrace, 
+                                                   genotypes = Landrace_DArT,
+                                                   covariances = NULL,
+                                                   extraCovariates = NULL)
+    summary_Landrace_CVO[i, 1] <- cor(Landrace[test,19], res_Index_Landrace_CVO$predictions[test])
+    
+    mega_Landrace <- Landrace[,20]
+    mega_Landrace[test] <- NA
+    res_mega_Landrace_CV0 = phenoRegressor.rrBLUP(phenotypes = mega_Landrace,
+                                                  genotypes = Landrace_DArT,
+                                                  covariances = NULL,
+                                                  extraCovariates = NULL)
+    summary_Landrace_CVO[i, 2] <-cor(Landrace[test,20], res_mega_Landrace_CV0$predictions[test])
+    
+  }
+  
+  summary_Cultivar_CVO <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  for (i in 1:cycles) {
+    train <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.9, digits = 0)))
+    test <- setdiff(1:length(Cultivar[,1]), train)
+    Index_Cultivar <- Cultivar[,19]
+    Index_Cultivar[test] <- NA
+    res_Index_Cultivar_CVO = phenoRegressor.rrBLUP(phenotypes = Index_Cultivar, 
+                                                   genotypes = Cultivar_DArT,
+                                                   covariances = NULL,
+                                                   extraCovariates = NULL)
+    summary_Cultivar_CVO[i, 1] <- cor(Cultivar[test,19], res_Index_Cultivar_CVO$predictions[test])
+    
+    mega_Cultivar <- Cultivar[,20]
+    mega_Cultivar[test] <- NA
+    res_mega_Cultivar_CV0 = phenoRegressor.rrBLUP(phenotypes = mega_Cultivar,
+                                                  genotypes = Cultivar_DArT,
+                                                  covariances = NULL,
+                                                  extraCovariates = NULL)
+    summary_Cultivar_CVO[i, 2] <-cor(Cultivar[test,20], res_mega_Cultivar_CV0$predictions[test])
+    
+  }
+  
+  summary_Wild_CVO <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  for (i in 1:cycles) {
+    train <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.9, digits = 0)))
+    test <- setdiff(1:length(Wild[,1]), train)
+    Index_Wild <- Wild[,19]
+    Index_Wild[test] <- NA
+    res_Index_Wild_CVO = phenoRegressor.rrBLUP(phenotypes = Index_Wild, 
+                                                   genotypes = Wild_DArT,
+                                                   covariances = NULL,
+                                                   extraCovariates = NULL)
+    summary_Wild_CVO[i, 1] <- cor(Wild[test,19], res_Index_Wild_CVO$predictions[test])
+    
+    mega_Wild <- Wild[,20]
+    mega_Wild[test] <- NA
+    res_mega_Wild_CV0 = phenoRegressor.rrBLUP(phenotypes = mega_Wild,
+                                                  genotypes = Wild_DArT,
+                                                  covariances = NULL,
+                                                  extraCovariates = NULL)
+    summary_Wild_CVO[i, 2] <-cor(Wild[test,20], res_mega_Wild_CV0$predictions[test])
+    
+  }
+  summary_Cultivar_CVO <- data.frame(Index = summary_Cultivar_CVO[,1], megaENV = summary_Cultivar_CVO[,2])
+    head(summary_Cultivar_CVO)
+    
+  sumary_material_CV0 <- data.frame(Index_Cultivar = summary_Cultivar_CVO[,1], megaENV_Cultivar = summary_Cultivar_CVO[,2],
+                                    Index_Landrace = summary_Landrace_CVO[,1], megaENV_Landrace = summary_Landrace_CVO[,2],
+                                    Index_Wild = summary_Wild_CVO[,1], megaENV_Wild = summary_Wild_CVO[,2])
+  boxplot(sumary_material_CV0)
+  desc_stat(sumary_material_CV0)
+  
+  #Predecir dentro del mismo ambiente varieades nuevas [CV1]. Wild vs Cultivar, Wild vs Landrace, etc...
+  summary_Landrace_CV1 <- matrix(nrow = cycles, ncol = 2)
+  summary_Cultivar_CV1 <- matrix(nrow = cycles, ncol = 2)
+  summary_Wild_CV1 <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  Index_Landrace <- as.matrix(Index_Landrace)
+  Index_Wild <- as.matrix(Index_Wild)
+  Index_Cultivar <- as.matrix(Index_Cultivar)
+  mega_Landrace <- as.matrix(mega_Landrace)
+  mega_Cultivar <- as.matrix(mega_Cultivar)
+  mega_Wild <- as.matrix(mega_Wild)
+  #ENV controlled condition (INDEX):
+  for (i in 1:cycles) {
+    #crear test de Wild que sea el 10% de Landrace (=20 entradas)
+      train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.6, digits = 0)))
+      test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+    
+    #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+      NA_mat_20 <- matrix(nrow = length(test_Wild), ncol = 1)
+      Landrace_Wild_CV1 <- rbind(Index_Landrace, NA_mat_20)
+    
+    #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+      geno_test_wild <-  Wild_DArT[test_Wild,]
+      geno_training <- rbind(Landrace_DArT,geno_test_wild)
+    
+
+      res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Wild_CV1, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+      summary_Landrace_CV1[i,1] <- cor(Wild[test_Wild,19], res_$predictions[198:217])
+    
+    #crear test de Cultivar que sea el 10% de Landrace (=20 entradas)
+      train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.62, digits = 0)))
+      test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+    
+    #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+      NA_mat_20 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+      Landrace_Cultivar_CV1 <- rbind(Index_Landrace, NA_mat_20)
+    
+    #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+      geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+      geno_training <- rbind(Landrace_DArT,geno_test_Cultivar)
+    
+    
+      res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Cultivar_CV1, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+      summary_Landrace_CV1[i,2] <- cor(Cultivar[test_Cultivar,19], res_$predictions[198:217])
+    
+  } #Index: Landrace vs Cultivar; Landrace vs Wild [CV0]
+    boxplot(summary_Landrace_CV1)
+  for (i in 1:cycles) {
+    #crear test de Wild que sea el 10% de Cultivar (=6 entradas)
+    train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.88, digits = 0)))
+    test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+    
+    #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Wild), ncol = 1)
+    Cultivar_Wild_CV1 <- rbind(Index_Cultivar, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Wild) a toda la info genotípica de Cultivar
+    geno_test_wild <-  Wild_DArT[test_Wild,]
+    geno_training <- rbind(Cultivar_DArT,geno_test_wild)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Wild_CV1, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Cultivar_CV1[i,1] <- cor(Wild[test_Wild,19], res_$predictions[54:59])
+    
+    #crear test de Landrace que sea el 10% de Cultivar (=6 entradas)
+    train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+    test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+    
+    #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+    Cultivar_Landrace_CV1 <- rbind(Index_Cultivar, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Cultivar
+    geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+    geno_training <- rbind(Cultivar_DArT,geno_test_Landrace)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Landrace_CV1, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Cultivar_CV1[i,2] <- cor(Landrace[test_Landrace,19], res_$predictions[54:59])
+    
+  } #Index: Cultivar vs Landrace; Cultivar vs Wild [CV0]
+    boxplot(summary_Cultivar_CV1)
+  for (i in 1:cycles) {
+    #crear test de Landrace que sea el 10% de Wild (=6 entradas)
+    train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+    test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+    
+    #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+    Wild_Landrace_CV1 <- rbind(Index_Wild, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Wild
+    geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+    geno_training <- rbind(Wild_DArT,geno_test_Landrace)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Landrace_CV1, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Wild_CV1[i,1] <- cor(Landrace[test_Landrace,19], res_$predictions[52:57])
+    
+    #crear test de Cultivar que sea el 10% de Wild (=6 entradas)
+    train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.88, digits = 0)))
+    test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+    
+    #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+    Wild_Cultivar_CV1 <- rbind(Index_Wild, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Cultivar) a toda la info genotípica de Wild
+    geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+    geno_training <- rbind(Wild_DArT,geno_test_Cultivar)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Cultivar_CV1, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Wild_CV1[i,2] <- cor(Cultivar[test_Cultivar,19], res_$predictions[52:57])
+    
+  } #Index: Wild vs Landrace; Wild vs Cultivar [CV0]
+    boxplot(summary_Wild_CV1)
+    
+  summary_material_CV1 <- data.frame(Landrace_Wild = summary_Landrace_CV1[,1], Landrace_Cultivar = summary_Landrace_CV1[,2],
+                                       Cultivar_Wild = summary_Cultivar_CV1[,1], Cultivar_Landrace = summary_Cultivar_CV1[,2],
+                                       Wild_Landrace = summary_Wild_CV1[,1], Wild_Cultivar = summary_Wild_CV1[,2])
+  desc_stat(summary_material_CV1)
+    
+    
+  #ENV MEGA ENVironment:
+    summary_Landrace_CV1_mega <- matrix(nrow = cycles, ncol = 2)
+    summary_Cultivar_CV1_mega <- matrix(nrow = cycles, ncol = 2)
+    summary_Wild_CV1_mega <- matrix(nrow = cycles, ncol = 2)
+  for (i in 1:cycles) {
+      #crear test de Wild que sea el 10% de Landrace (=20 entradas)
+      train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.6, digits = 0)))
+      test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+      
+      #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+      NA_mat_20 <- matrix(nrow = length(test_Wild), ncol = 1)
+      Landrace_Wild_CV1 <- rbind(mega_Landrace, NA_mat_20) #training
+      
+      #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+      geno_test_wild <-  Wild_DArT[test_Wild,]
+      geno_training <- rbind(Landrace_DArT,geno_test_wild)
+      
+      
+      res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Wild_CV1, 
+                                   genotypes = geno_training,
+                                   covariances = NULL,
+                                   extraCovariates = NULL)
+      
+      summary_Landrace_CV1_mega[i,1] <- cor(Wild[test_Wild,20], res_$predictions[198:217])
+      
+      #crear test de Cultivar que sea el 10% de Landrace (=20 entradas)
+      train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.62, digits = 0)))
+      test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+      
+      #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+      NA_mat_20 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+      Landrace_Cultivar_CV1 <- rbind(mega_Landrace, NA_mat_20) #training
+      
+      #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+      geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+      geno_training <- rbind(Landrace_DArT,geno_test_Cultivar)
+      
+      
+      res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Cultivar_CV1, 
+                                   genotypes = geno_training,
+                                   covariances = NULL,
+                                   extraCovariates = NULL)
+      
+      summary_Landrace_CV1_mega[i,2] <- cor(Cultivar[test_Cultivar,20], res_$predictions[198:217])
+      
+    } #megaENV: Landrace vs Cultivar; Landrace vs Wild [CV0]
+    boxplot(summary_Landrace_CV1_mega)
+  for (i in 1:cycles) {
+      #crear test de Wild que sea el 10% de Cultivar (=6 entradas)
+      train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.88, digits = 0)))
+      test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+      
+      #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+      NA_mat_6 <- matrix(nrow = length(test_Wild), ncol = 1)
+      Cultivar_Wild_CV1 <- rbind(mega_Cultivar, NA_mat_6)
+      
+      #Añadir la info genotípica de las 6 entradas (Wild) a toda la info genotípica de Cultivar
+      geno_test_wild <-  Wild_DArT[test_Wild,]
+      geno_training <- rbind(Cultivar_DArT,geno_test_wild)
+      
+      
+      res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Wild_CV1, 
+                                   genotypes = geno_training,
+                                   covariances = NULL,
+                                   extraCovariates = NULL)
+      
+      summary_Cultivar_CV1_mega[i,1] <- cor(Wild[test_Wild,20], res_$predictions[54:59])
+      
+      #crear test de Landrace que sea el 10% de Cultivar (=6 entradas)
+      train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+      test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+      
+      #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+      NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+      Cultivar_Landrace_CV1 <- rbind(mega_Cultivar, NA_mat_6)
+      
+      #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Cultivar
+      geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+      geno_training <- rbind(Cultivar_DArT,geno_test_Landrace)
+      
+      
+      res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Landrace_CV1, 
+                                   genotypes = geno_training,
+                                   covariances = NULL,
+                                   extraCovariates = NULL)
+      
+      summary_Cultivar_CV1_mega[i,2] <- cor(Landrace[test_Landrace,20], res_$predictions[54:59])
+      
+    } #megaENV: Cultivar vs Landrace; Cultivar vs Wild [CV0]
+    boxplot(summary_Cultivar_CV1_mega)
+  for (i in 1:cycles) {
+      #crear test de Landrace que sea el 10% de Wild (=6 entradas)
+      train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+      test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+      
+      #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+      NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+      Wild_Landrace_CV1 <- rbind(mega_Wild, NA_mat_6)
+      
+      #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Wild
+      geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+      geno_training <- rbind(Wild_DArT,geno_test_Landrace)
+      
+      
+      res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Landrace_CV1, 
+                                   genotypes = geno_training,
+                                   covariances = NULL,
+                                   extraCovariates = NULL)
+      
+      summary_Wild_CV1_mega[i,1] <- cor(Landrace[test_Landrace,20], res_$predictions[52:57])
+      
+      #crear test de Cultivar que sea el 10% de Wild (=6 entradas)
+      train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.88, digits = 0)))
+      test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+      
+      #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+      NA_mat_6 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+      Wild_Cultivar_CV1 <- rbind(mega_Wild, NA_mat_6)
+      
+      #Añadir la info genotípica de las 6 entradas (Cultivar) a toda la info genotípica de Wild
+      geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+      geno_training <- rbind(Wild_DArT,geno_test_Cultivar)
+      
+      
+      res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Cultivar_CV1, 
+                                   genotypes = geno_training,
+                                   covariances = NULL,
+                                   extraCovariates = NULL)
+      
+      summary_Wild_CV1_mega[i,2] <- cor(Cultivar[test_Cultivar,20], res_$predictions[52:57])
+      
+    } #megaENV: Wild vs Landrace; Wild vs Cultivar [CV0]
+    boxplot(summary_Wild_CV1_mega)
+    
+  summary_material_CV1_mega <- data.frame(Landrace_Wild = summary_Landrace_CV1_mega[,1], Landrace_Cultivar = summary_Landrace_CV1_mega[,2],
+                                       Cultivar_Wild = summary_Cultivar_CV1_mega[,1], Cultivar_Landrace = summary_Cultivar_CV1_mega[,2],
+                                       Wild_Landrace = summary_Wild_CV1_mega[,1], Wild_Cultivar = summary_Wild_CV1_mega[,2])
+  desc_stat(summary_material_CV1_mega)
+    
+  #ENV controlled condition (INDEX) to predict mega ENV:
+  summary_Landrace_CV2 <- matrix(nrow = cycles, ncol = 2)
+  summary_Cultivar_CV2 <- matrix(nrow = cycles, ncol = 2)
+  summary_Wild_CV2 <- matrix(nrow = cycles, ncol = 2)
+  for (i in 1:cycles) {
+    #crear test de Wild que sea el 10% de Landrace (=20 entradas)
+    train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.6, digits = 0)))
+    test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+    
+    #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+    NA_mat_20 <- matrix(nrow = length(test_Wild), ncol = 1)
+    Landrace_Wild_CV2 <- rbind(Index_Landrace, NA_mat_20)
+    
+    #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+    geno_test_wild <-  Wild_DArT[test_Wild,]
+    geno_training <- rbind(Landrace_DArT,geno_test_wild)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Wild_CV2, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Landrace_CV2[i,1] <- cor(Wild[test_Wild,20], res_$predictions[198:217])
+    
+    #crear test de Cultivar que sea el 10% de Landrace (=20 entradas)
+    train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.62, digits = 0)))
+    test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+    
+    #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+    NA_mat_20 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+    Landrace_Cultivar_CV2 <- rbind(Index_Landrace, NA_mat_20)
+    
+    #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+    geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+    geno_training <- rbind(Landrace_DArT,geno_test_Cultivar)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Cultivar_CV2, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Landrace_CV2[i,2] <- cor(Cultivar[test_Cultivar,20], res_$predictions[198:217])
+    
+  } #Index: Landrace vs Cultivar; Landrace vs Wild [CV2]
+  boxplot(summary_Landrace_CV2)
+  for (i in 1:cycles) {
+    #crear test de Wild que sea el 10% de Cultivar (=6 entradas)
+    train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.88, digits = 0)))
+    test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+    
+    #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Wild), ncol = 1)
+    Cultivar_Wild_CV2 <- rbind(Index_Cultivar, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Wild) a toda la info genotípica de Cultivar
+    geno_test_wild <-  Wild_DArT[test_Wild,]
+    geno_training <- rbind(Cultivar_DArT,geno_test_wild)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Wild_CV2, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Cultivar_CV2[i,1] <- cor(Wild[test_Wild,20], res_$predictions[54:59])
+    
+    #crear test de Landrace que sea el 10% de Cultivar (=6 entradas)
+    train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+    test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+    
+    #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+    Cultivar_Landrace_CV2 <- rbind(Index_Cultivar, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Cultivar
+    geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+    geno_training <- rbind(Cultivar_DArT,geno_test_Landrace)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Landrace_CV2, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Cultivar_CV2[i,2] <- cor(Landrace[test_Landrace,20], res_$predictions[54:59])
+    
+  } #Index: Cultivar vs Landrace; Cultivar vs Wild [CV2]
+  boxplot(summary_Cultivar_CV2)
+  for (i in 1:cycles) {
+    #crear test de Landrace que sea el 10% de Wild (=6 entradas)
+    train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+    test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+    
+    #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+    Wild_Landrace_CV2 <- rbind(Index_Wild, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Wild
+    geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+    geno_training <- rbind(Wild_DArT,geno_test_Landrace)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Landrace_CV2, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Wild_CV2[i,1] <- cor(Landrace[test_Landrace,20], res_$predictions[52:57])
+    
+    #crear test de Cultivar que sea el 10% de Wild (=6 entradas)
+    train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.88, digits = 0)))
+    test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+    
+    #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+    Wild_Cultivar_CV2 <- rbind(Index_Wild, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Cultivar) a toda la info genotípica de Wild
+    geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+    geno_training <- rbind(Wild_DArT,geno_test_Cultivar)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Cultivar_CV2, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Wild_CV2[i,2] <- cor(Cultivar[test_Cultivar,20], res_$predictions[52:57])
+    
+  } #Index: Wild vs Landrace; Wild vs Cultivar [CV2]
+  boxplot(summary_Wild_CV2)
+  
+  summary_material_CV2 <- data.frame(Landrace_Wild = summary_Landrace_CV2[,1], Landrace_Cultivar = summary_Landrace_CV2[,2],
+                                     Cultivar_Wild = summary_Cultivar_CV2[,1], Cultivar_Landrace = summary_Cultivar_CV2[,2],
+                                     Wild_Landrace = summary_Wild_CV2[,1], Wild_Cultivar = summary_Wild_CV2[,2])
+  desc_stat(summary_material_CV2)
+  
+  #ENV controlled condition (INDEX) to predict mega ENV:
+  summary_Landrace_MxE <- matrix(nrow = cycles, ncol = 2)
+  summary_Cultivar_MxE <- matrix(nrow = cycles, ncol = 2)
+  summary_Wild_MxE <- matrix(nrow = cycles, ncol = 2)
+  for (i in 1:cycles) {
+    #crear test de Wild que sea el 10% de Landrace (=20 entradas)
+    train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.6, digits = 0)))
+    test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+    
+    #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+    NA_mat_20 <- matrix(nrow = length(test_Wild), ncol = 1)
+    Landrace_Wild_MxE <- rbind(Index_Landrace, NA_mat_20)
+    
+    #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+    geno_test_wild <-  Wild_DArT[test_Wild,]
+    geno_training <- rbind(Landrace_DArT,geno_test_wild)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Wild_MxE, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Landrace_MxE[i,1] <- cor(Wild[test_Wild,20], res_$predictions[198:217])
+    
+    #crear test de Cultivar que sea el 10% de Landrace (=20 entradas)
+    train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.62, digits = 0)))
+    test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+    
+    #Añadir 20 huecos (NA) a la matriz Landrace, que es lo que se va a predecir
+    NA_mat_20 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+    Landrace_Cultivar_MxE <- rbind(Index_Landrace, NA_mat_20)
+    
+    #Añadir la info genotípica de las 20 entradas (Wild) a toda la info genotípica de Landrace
+    geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+    geno_training <- rbind(Landrace_DArT,geno_test_Cultivar)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Landrace_Cultivar_MxE, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Landrace_MxE[i,2] <- cor(Cultivar[test_Cultivar,20], res_$predictions[198:217])
+    
+  } #Index: Landrace vs Cultivar; Landrace vs Wild [MxE]
+  boxplot(summary_Landrace_MxE)
+  for (i in 1:cycles) {
+    #crear test de Wild que sea el 10% de Cultivar (=6 entradas)
+    train_Wild <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.88, digits = 0)))
+    test_Wild <- setdiff(1:length(Wild[,1]), train_Wild) 
+    
+    #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Wild), ncol = 1)
+    Cultivar_Wild_MxE <- rbind(Index_Cultivar, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Wild) a toda la info genotípica de Cultivar
+    geno_test_wild <-  Wild_DArT[test_Wild,]
+    geno_training <- rbind(Cultivar_DArT,geno_test_wild)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Wild_MxE, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Cultivar_MxE[i,1] <- cor(Wild[test_Wild,20], res_$predictions[54:59])
+    
+    #crear test de Landrace que sea el 10% de Cultivar (=6 entradas)
+    train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+    test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+    
+    #Añadir 6 huecos (NA) a la matriz Cultivar, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+    Cultivar_Landrace_MxE <- rbind(Index_Cultivar, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Cultivar
+    geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+    geno_training <- rbind(Cultivar_DArT,geno_test_Landrace)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Cultivar_Landrace_MxE, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Cultivar_MxE[i,2] <- cor(Landrace[test_Landrace,20], res_$predictions[54:59])
+    
+  } #Index: Cultivar vs Landrace; Cultivar vs Wild [MxE]
+  boxplot(summary_Cultivar_MxE)
+  for (i in 1:cycles) {
+    #crear test de Landrace que sea el 10% de Wild (=6 entradas)
+    train_Landrace <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.97, digits = 0)))
+    test_Landrace <- setdiff(1:length(Landrace[,1]), train_Landrace) 
+    
+    #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Landrace), ncol = 1)
+    Wild_Landrace_MxE <- rbind(Index_Wild, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Landrace) a toda la info genotípica de Wild
+    geno_test_Landrace <-  Landrace_DArT[test_Landrace,]
+    geno_training <- rbind(Wild_DArT,geno_test_Landrace)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Landrace_MxE, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Wild_MxE[i,1] <- cor(Landrace[test_Landrace,20], res_$predictions[52:57])
+    
+    #crear test de Cultivar que sea el 10% de Wild (=6 entradas)
+    train_Cultivar <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.88, digits = 0)))
+    test_Cultivar <- setdiff(1:length(Cultivar[,1]), train_Cultivar) 
+    
+    #Añadir 6 huecos (NA) a la matriz Wild, que es lo que se va a predecir
+    NA_mat_6 <- matrix(nrow = length(test_Cultivar), ncol = 1)
+    Wild_Cultivar_MxE <- rbind(Index_Wild, NA_mat_6)
+    
+    #Añadir la info genotípica de las 6 entradas (Cultivar) a toda la info genotípica de Wild
+    geno_test_Cultivar <-  Cultivar_DArT[test_Cultivar,]
+    geno_training <- rbind(Wild_DArT,geno_test_Cultivar)
+    
+    
+    res_ = phenoRegressor.rrBLUP(phenotypes = Wild_Cultivar_MxE, 
+                                 genotypes = geno_training,
+                                 covariances = NULL,
+                                 extraCovariates = NULL)
+    
+    summary_Wild_MxE[i,2] <- cor(Cultivar[test_Cultivar,20], res_$predictions[52:57])
+    
+  } #Index: Wild vs Landrace; Wild vs Cultivar [MxE]
+  boxplot(summary_Wild_MxE)
+  
+  summary_material_MxE <- data.frame(Landrace_Wild = summary_Landrace_MxE[,1], Landrace_Cultivar = summary_Landrace_MxE[,2],
+                                     Cultivar_Wild = summary_Cultivar_MxE[,1], Cultivar_Landrace = summary_Cultivar_MxE[,2],
+                                     Wild_Landrace = summary_Wild_MxE[,1], Wild_Cultivar = summary_Wild_MxE[,2])
+  desc_stat(summary_material_MxE)
+  
+  
+  #Predecir dentro del mismo ambiente varieades nuevas [CV2_I]. 
+  summary_Landrace_CV2_I <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  for (i in 1:cycles) {
+    train <- as.matrix(sample(1:length(Landrace[,1]), round(length(Landrace[,1])*0.9, digits = 0)))
+    test <- setdiff(1:length(Landrace[,1]), train)
+    Index_Landrace <- Landrace[,19]
+    Index_Landrace[test] <- NA
+    res_Index_Landrace_CV2_I = phenoRegressor.rrBLUP(phenotypes = Index_Landrace, 
+                                                   genotypes = Landrace_DArT,
+                                                   covariances = NULL,
+                                                   extraCovariates = NULL)
+    summary_Landrace_CV2_I[i, 1] <- cor(Landrace[test,20], res_Index_Landrace_CV2_I$predictions[test])
+    
+    mega_Landrace <- Landrace[,20]
+    mega_Landrace[test] <- NA
+    res_mega_Landrace_CV2_I = phenoRegressor.rrBLUP(phenotypes = mega_Landrace,
+                                                  genotypes = Landrace_DArT,
+                                                  covariances = NULL,
+                                                  extraCovariates = NULL)
+    summary_Landrace_CV2_I[i, 2] <-cor(Landrace[test,19], res_mega_Landrace_CV2_I$predictions[test])
+    
+  }
+  
+  summary_Cultivar_CV2_I <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  for (i in 1:cycles) {
+    train <- as.matrix(sample(1:length(Cultivar[,1]), round(length(Cultivar[,1])*0.9, digits = 0)))
+    test <- setdiff(1:length(Cultivar[,1]), train)
+    Index_Cultivar <- Cultivar[,19]
+    Index_Cultivar[test] <- NA
+    res_Index_Cultivar_CV2_I = phenoRegressor.rrBLUP(phenotypes = Index_Cultivar, 
+                                                   genotypes = Cultivar_DArT,
+                                                   covariances = NULL,
+                                                   extraCovariates = NULL)
+    summary_Cultivar_CV2_I[i, 1] <- cor(Cultivar[test,20], res_Index_Cultivar_CV2_I$predictions[test])
+    
+    mega_Cultivar <- Cultivar[,20]
+    mega_Cultivar[test] <- NA
+    res_mega_Cultivar_CV2_I = phenoRegressor.rrBLUP(phenotypes = mega_Cultivar,
+                                                  genotypes = Cultivar_DArT,
+                                                  covariances = NULL,
+                                                  extraCovariates = NULL)
+    summary_Cultivar_CV2_I[i, 2] <-cor(Cultivar[test,19], res_mega_Cultivar_CV2_I$predictions[test])
+    
+  }
+  
+  summary_Wild_CV2_I <- matrix(nrow = cycles, ncol = 2)
+  cycles = 500
+  for (i in 1:cycles) {
+    train <- as.matrix(sample(1:length(Wild[,1]), round(length(Wild[,1])*0.9, digits = 0)))
+    test <- setdiff(1:length(Wild[,1]), train)
+    Index_Wild <- Wild[,19]
+    Index_Wild[test] <- NA
+    res_Index_Wild_CV2_I = phenoRegressor.rrBLUP(phenotypes = Index_Wild, 
+                                               genotypes = Wild_DArT,
+                                               covariances = NULL,
+                                               extraCovariates = NULL)
+    summary_Wild_CV2_I[i, 1] <- cor(Wild[test,20], res_Index_Wild_CV2_I$predictions[test])
+    
+    mega_Wild <- Wild[,20]
+    mega_Wild[test] <- NA
+    res_mega_Wild_CV2_I = phenoRegressor.rrBLUP(phenotypes = mega_Wild,
+                                              genotypes = Wild_DArT,
+                                              covariances = NULL,
+                                              extraCovariates = NULL)
+    summary_Wild_CV2_I[i, 2] <-cor(Wild[test,19], res_mega_Wild_CV2_I$predictions[test])
+    
+  }
+  summary_Cultivar_CV2_I <- data.frame(Index = summary_Cultivar_CV2_I[,1], megaENV = summary_Cultivar_CV2_I[,2])
+  head(summary_Cultivar_CV2_I)
+  
+  sumary_material_CV2_I <- data.frame(Index_Cultivar = summary_Cultivar_CV2_I[,1], megaENV_Cultivar = summary_Cultivar_CV2_I[,2],
+                                    Index_Landrace = summary_Landrace_CV2_I[,1], megaENV_Landrace = summary_Landrace_CV2_I[,2],
+                                    Index_Wild = summary_Wild_CV2_I[,1], megaENV_Wild = summary_Wild_CV2_I[,2])
+  boxplot(sumary_material_CV2_I)
+  desc_stat(sumary_material_CV2_I)
+  
+  
+  #Phenotypic correlations:
+  
+  
+ #figures:
+  CV0_all <- read.xlsx("results/field&MEGAenv_traits_predictorsDArT.xlsx", sheet = "CV0", colNames = T)
+  
+  ggplot(CV0_all, aes(x = dataset.train, y = pearson)) +
+    geom_boxplot(aes(fill = regressor)) +
+    theme_classic()
+  
+  
   
