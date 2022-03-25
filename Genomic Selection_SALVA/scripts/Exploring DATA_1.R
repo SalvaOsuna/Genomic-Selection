@@ -271,6 +271,7 @@ write.xlsx(BLUP_field, "BLUP_field3.xlsx")
               resp = c("Rust", "RustT"),
               block = BLOCK)
         get_model_data(mod_R18_scaled)
+        desc_stat(R20_scaled)
         R19_scaled <- x_scaled %>%
           filter(ENV == "R19")
         mod_R19_scaled <- gamem(.data = R19_scaled,
@@ -335,6 +336,36 @@ write.xlsx(BLUP_field, "BLUP_field3.xlsx")
           corr_plot(BLUPs_scaled)
           corr_plot(R_scaled)
           head(BLUPs_scaled)
+          
+          #pairs of environments:
+          R18_R19_scaled <- x_scaled %>%
+            filter(ENV == "R18"| ENV == "R19")
+          mod_R18_R19 <- gamem_met(.data = R18_R19_scaled,
+                                  gen = GEN,
+                                  rep = REP,
+                                  env = ENV,
+                                  resp = c("Rust", "RustT"),
+                                  block = BLOCK)
+          get_model_data(mod_R18_R19)
+          R18_R20_scaled <- x_scaled %>%
+            filter(ENV == "R18"| ENV == "R20")
+          mod_R18_R20 <- gamem_met(.data = R18_R20_scaled,
+                                   gen = GEN,
+                                   rep = REP,
+                                   env = ENV,
+                                   resp = c("Rust", "RustT"),
+                                   block = BLOCK)
+          get_model_data(mod_R18_R20)
+          R19_R20_scaled <- x_scaled %>%
+            filter(ENV == "R19"| ENV == "R20")
+          mod_R19_R20 <- gamem_met(.data = R19_R20_scaled,
+                                   gen = GEN,
+                                   rep = REP,
+                                   env = ENV,
+                                   resp = c("Rust", "RustT"),
+                                   block = BLOCK)
+          get_model_data(mod_R19_R20)
+          
         }
 
 #Analysis of single environment/experiment using mixed-models
@@ -851,3 +882,77 @@ Pheno_rust$I_cc_FAI <- as.numeric(Pheno_rust$I_cc_FAI)
 corr_plot(Pheno_rust, c("R19", "AUDPC", "IF", "IT", "DS", "I_cc_FAI"))
 
 0.30/(sqrt(0.76)*sqrt(0.67))
+<<<<<<< HEAD
+
+#Data distribution, final figure for the paper:
+head(R_scaled)
+ggplot(R_scaled, aes(x = DS))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 3.5) +
+  geom_vline(aes(xintercept=mean(DS)),
+               color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,88),
+                  xlim = c(0,60)) +
+  theme_classic() 
+
+ggplot(R_scaled, aes(x = R18))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 3.5) +
+  geom_vline(aes(xintercept=mean(R18)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,88),
+                  xlim = c(10,70)) +
+  theme_classic()
+
+ggplot(R_scaled, aes(x = R19))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 3.5) +
+  geom_vline(aes(xintercept=mean(R19)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,88),
+                  xlim = c(5,70)) +
+  theme_classic()
+
+ggplot(R_scaled, aes(x = R20))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 3.5) +
+  geom_vline(aes(xintercept=mean(R20)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,88),
+                  xlim = c(5,70)) +
+  theme_classic()
+ggplot(R_scaled, aes(x = IT))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 0.07) +
+  geom_vline(aes(xintercept=mean(IT)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,140),
+                  xlim = c(2.7,4)) +
+  theme_classic()
+ggplot(R_scaled, aes(x = AUDPC))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 35) +
+  geom_vline(aes(xintercept=mean(AUDPC)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,140),
+                  xlim = c(0,600)) +
+  theme_classic()
+ggplot(R_scaled, aes(x = IF))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 6) +
+  geom_vline(aes(xintercept=mean(IF)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,140),
+                  xlim = c(10,120)) +
+  theme_classic()
+ggplot(R_scaled, aes(x = LP50))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 0.0025) +
+  geom_vline(aes(xintercept=mean(LP50)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,140),
+                  xlim = c(0.945,0.985)) +
+  theme_classic
+corr_plot(R_scaled, AUDPC, DS, IF,IT,LP50,R18,R19,R20)
+=======
+>>>>>>> parent of adac833 (summary)
