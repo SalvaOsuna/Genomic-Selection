@@ -1037,7 +1037,7 @@ write.xlsx(x = CV2_DArT_rrBLUP, file = "results/CV2_DArT_rrBLUP.xlsx", overwrite
 
 
 #HERE WE GO AGAIN. NOW WITH SCALED FIELD DATA####
-R_scaled <- read.xlsx("BLUPs_scaled.xlsx")
+R_scaled <- read.xlsx("BLUPs_scaled.xlsx", sheet = "Sheet 1")
 head(R_scaled)
 head(DArT_GROAN_SVDI[1:20,1:20])
   nds.R18 = createNoisyDataset(

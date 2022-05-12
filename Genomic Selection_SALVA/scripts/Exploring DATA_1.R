@@ -147,7 +147,9 @@ R20_nc$GEN <- as.factor(R20_nc$GEN)
                    "numeric", #AUDPC_T square root
                    "numeric", #PL50_T log
                    "numeric", #IF_T square root
-                   "numeric" #DS_T arc.sin
+                   "numeric", #DS_T arc.sin
+                   "numeric",
+                   "numeric" #MDPr
                  ))
   
   RCC_nc$REP <- as.factor(RCC_nc$REP)
@@ -262,6 +264,7 @@ write.xlsx(BLUP_field, "BLUP_field3.xlsx")
                     block = BLOCK
           )
         get_model_data(mixed_mod_x_scaled)
+
         #single ENV
         R18_scaled <- x_scaled %>%
           filter(ENV == "R18")
@@ -279,7 +282,7 @@ write.xlsx(BLUP_field, "BLUP_field3.xlsx")
                                 rep = REP,
                                 resp = c("Rust", "RustT"),
                                 block = BLOCK)
-        get_model_data(mod_R20_scaled)
+        get_model_data(mod_R19_scaled)
         R20_scaled <- x_scaled %>%
           filter(ENV == "R20")
         mod_R20_scaled <- gamem(.data = R20_scaled,
@@ -287,7 +290,7 @@ write.xlsx(BLUP_field, "BLUP_field3.xlsx")
                                 rep = REP,
                                 resp = c("Rust", "RustT"),
                                 block = BLOCK)
-        get_model_data(mod_R19_scaled)
+        get_model_data(mod_R20_scaled)
         BLUP18_scaled <- mod_R18_scaled$Rust$BLUPgen %>%
           arrange(GEN)
         BLUP19_scaled <- mod_R19_scaled$Rust$BLUPgen %>%
@@ -429,7 +432,7 @@ gen_alphaR20 <-
       gamem(RCC_nc, 
             GEN, 
             REP, 
-            resp = c("AUDPC_T", "PL50_T", "IF_T", "IT_n", "DS_T"), 
+            resp = c("AUDPC_T", "PL50_T", "IF_T", "IT_n", "DS_T", "MDPr"), 
             BLOCK)
     
   gen_alphaRCC_noLP <- 
@@ -440,13 +443,16 @@ gen_alphaR20 <-
     
     get_model_data(gen_alphaRCC)
     gen_alphaRCC$AUDPC_T$BLUPgen
+    hist(gen_alphaRCC$MDPr$BLUPgen$Predicted)
     BLUPcc <- get_model_data(gen_alphaRCC, what = "blupg")
-    #write.xlsx(BLUPcc, file = "BLUPcc.xlsx", sep = "/t")
+    write.xlsx(BLUPcc, file = "BLUPcc.xlsx", sep = "/t")
     BLUPcc1 <- read.xlsx("BLUPcc.xlsx")
     BLUPcc_noLP <- get_model_data(gen_alphaRCC_noLP, what = "blupg")
-    corr_plot(RCC_nc, c("AUDPC_T", "PL50_T", "IF_T", "DS_T", "IT_n"))
-    corr_plot(BLUPcc, c("AUDPC_T", "PL50_T", "IF_T", "DS_T", "IT_n"))
-    
+    corr_plot(RCC_nc, c("AUDPC_T", "PL50_T", "IF_T", "DS_T", "IT_n", "MDPr"))
+    corr_plot(BLUPcc, c("AUDPC_T", "PL50_T", "IF_T", "DS_T", "IT_n", "MDPr"))
+    corr_plot(R_scaled, c("R18", "R19", "R20", "AUDPC", "DS", "MDPr", "IT", "IF", "LP50", "Rust", "I_cc_FAI"))
+    corr_plot(R_scaled, c("R18", "R19", "R20", "AUDPC_T", "DS_T", "MDPr", "IT_T", "IF_T", "LP50_T", "RustT", "I_cc_FAI"))
+    head(R_scaled)
     get_model_data(gen_alphaRCC)
     get_model_data(gen_alphaRCC, "lrt")
     
@@ -458,8 +464,8 @@ gen_alphaR20 <-
     FAI <- fai_blup(
       gen_alphaRCC,
        use_data = "blup",
-        DI = c("min", "max", "min", "min", "min"),
-        UI = c("max", "min", "max", "max", "max"),
+        DI = c("min", "max", "min", "min", "min", "min"),
+        UI = c("max", "min", "max", "max", "max", "max"),
         SI = 15,
         mineval = 1,
        verbose = TRUE)
@@ -481,7 +487,7 @@ gen_alphaR20 <-
     #MGIDI index selection:  
 
       mgidi_index <- mgidi(gen_alphaRCC,
-                          ideotype = c("l", "h", "l", "l","l"),
+                          ideotype = c("l", "h", "l", "l","l", "l"),
                      SI = 10) # Selection intensity
       mgidi_index_noLP <- mgidi(gen_alphaRCC_noLP,
                            ideotype = c("l", "l", "l","l"),
@@ -496,7 +502,7 @@ gen_alphaR20 <-
      covcor1 <-  covcor_design(RCC_nc, 
                     gen = GEN, 
                     rep = REP , 
-                    resp = c("AUDPC_n", "DS_n", "IF_n", "IT_n"), 
+                    resp = c("AUDPC_n", "DS_n", "IF_n", "IT_n", "PL50_T", "MDPr"), 
                     design = "RCBD")
       
       SH <- Smith_Hazel(
@@ -509,7 +515,13 @@ gen_alphaR20 <-
       )
       SH_selection <- SH$index
       #write.xlsx(SH_selection, "SH_selection.xlsx", sep = "/t")
-      
+    #Lin-BINN superiority index:
+      Rall_field <- read.xlsx("C:/Users/Salva/Documents/GitHub/Genomic-Selection/Genomic Selection_SALVA/data/field_data_scaled.xlsx")
+      linbinn <- superiority(Rall_field,
+                  env = ENV, gen = GEN, resp = Rust)
+      indices <- data.frame(linbinn$Rust$index, FAI$FAI, mgidi_index$MGIDI)
+      head(indices)
+      write.xlsx(indices, "indices.xlsx")
       #Comparison of the genotype selected:
       coincidence <- coincidence_index(mgidi_index_noLP, FAI_noLP, SH, total = 13)
       coincidence
@@ -882,7 +894,6 @@ Pheno_rust$I_cc_FAI <- as.numeric(Pheno_rust$I_cc_FAI)
 corr_plot(Pheno_rust, c("R19", "AUDPC", "IF", "IT", "DS", "I_cc_FAI"))
 
 0.30/(sqrt(0.76)*sqrt(0.67))
-<<<<<<< HEAD
 
 #Data distribution, final figure for the paper:
 head(R_scaled)
@@ -893,6 +904,15 @@ ggplot(R_scaled, aes(x = DS))+
                color="red", linetype="dashed", size=1) +
   coord_cartesian(ylim=c(0,88),
                   xlim = c(0,60)) +
+  theme_classic()
+
+ggplot(R_scaled, aes(x = MDPr))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 0.05) +
+  geom_vline(aes(xintercept=mean(MDPr)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,88),
+                  xlim = c(0.2,1)) +
   theme_classic() 
 
 ggplot(R_scaled, aes(x = R18))+
@@ -945,6 +965,15 @@ ggplot(R_scaled, aes(x = IF))+
   coord_cartesian(ylim=c(0,140),
                   xlim = c(10,120)) +
   theme_classic()
+theme_classic()
+ggplot(R_scaled, aes(x = MDPr))+
+  geom_histogram(color="black", fill="white",
+                 binwidth = 0.05) +
+  geom_vline(aes(xintercept=mean(MDPr)),
+             color="red", linetype="dashed", size=1) +
+  coord_cartesian(ylim=c(0,140),
+                  xlim = c(0.2,1)) +
+  theme_classic()
 ggplot(R_scaled, aes(x = LP50))+
   geom_histogram(color="black", fill="white",
                  binwidth = 0.0025) +
@@ -954,5 +983,3 @@ ggplot(R_scaled, aes(x = LP50))+
                   xlim = c(0.945,0.985)) +
   theme_classic
 corr_plot(R_scaled, AUDPC, DS, IF,IT,LP50,R18,R19,R20)
-=======
->>>>>>> parent of adac833 (summary)
